@@ -1,0 +1,21 @@
+services:
+
+  elastic-search:
+    image: "elasticsearch:8.14.1"
+    ports:
+      - "9300:9300"
+      - "9200:9200"
+    environment:
+      - "discovery.type=single-node"
+      - "xpack.security.enabled=false"
+
+  redis:
+    image: "redis/redis-stack:latest"
+    ports:
+      - "6379:6379" # Redis Server
+      - "8001:8001" # Redis Insight
+
+  app:
+    build: "./"
+    ports:
+      - "8000:8000"
