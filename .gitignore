@@ -3,5 +3,7 @@ __pycache__/
 .venv/
 venv/
 .env
+eggs/
+.eggs/
 db.sqlite3
 dump.sql

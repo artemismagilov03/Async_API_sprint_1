@@ -5,6 +5,7 @@ from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 from redis.asyncio import Redis
 
+from api.v1.enums import FilmSortOption
 from db.elastic import get_elastic
 from db.redis import get_redis
 from models.film import Film
@@ -18,14 +19,30 @@ class FilmService:
         self.elastic = elastic
 
     async def get_by_id(self, film_id: str) -> Optional[Film]:
-        film = await self._film_from_cache(film_id)
+        film = None  # await self._film_from_cache(film_id)
         if not film:
             film = await self._get_film_from_elastic(film_id)
             if not film:
                 return None
-            await self._put_film_to_cache(film)
+            # await self._put_film_to_cache(film)
 
         return film
+
+    async def get_by_list(
+        self, sort: FilmSortOption, page_size: int, page_number: int
+    ) -> list[Film]:
+        films = (
+            None  # await self._films_from_cache(sort, page_size, page_number)
+        )
+        if not films:
+            films = await self._get_films_from_elastic(
+                sort, page_size, page_number
+            )
+            if not films:
+                return None
+            # await self._put_film_to_cache(films)
+
+        return films
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
         try:
@@ -34,18 +51,47 @@ class FilmService:
             return None
         return Film(**doc['_source'])
 
-    async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        data = await self.redis.get(film_id)
-        if not data:
-            return None
+    async def _get_films_from_elastic(
+        self, sort: FilmSortOption, page_size: int, page_number: int
+    ) -> list[Film]:
+        order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
 
-        film = Film.parse_raw(data)
-        return film
+        body = {
+            'query': {'match_all': {}},
+            'from': page_number,
+            'size': page_size,
+            'sort': [{row: {'order': order}}],
+        }
+        docs = await self.elastic.search(index='movies', body=body)
+        return [Film(**doc['_source']) for doc in docs['hits']['hits']]
 
-    async def _put_film_to_cache(self, film: Film):
-        await self.redis.set(
-            film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
-        )
+    # async def _film_from_cache(self, film_id: str) -> Optional[Film]:
+    #     data = await self.redis.get(film_id)
+    #     if not data:
+    #         return None
+    #
+    #     film = Film.model_validate_json(data)
+    #     return film
+
+    # async def _films_from_cache(
+    #     self, sort: FilmRow, page_size: int, page_number: int
+    # ) -> Optional[Film]:
+    #     data = await self.redis.set()
+    #     if not data:
+    #         return None
+    #
+    #     film = Film.parse_raw(data)
+    #     return film
+
+    # async def _put_film_to_cache(self, film: Film):
+    #     await self.redis.set(
+    #         film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
+    #     )
+    #
+    # async def _put_films_to_cache(self, films: list[Film]):
+    #     await self.redis.set(
+    #         film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
+    #     )
 
 
 @lru_cache()
