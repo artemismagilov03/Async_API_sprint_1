@@ -8,7 +8,7 @@ from redis.asyncio import Redis
 from api.v1.enums import FilmSortOption
 from db.elastic import get_elastic
 from db.redis import get_redis
-from models.film import Film
+from api.v1.schemas import Film
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
