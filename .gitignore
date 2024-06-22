@@ -7,3 +7,4 @@ eggs/
 .eggs/
 db.sqlite3
 dump.sql
+.ruff_cache
