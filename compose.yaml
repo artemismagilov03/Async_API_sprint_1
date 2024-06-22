@@ -1,5 +1,3 @@
-version: "3"
-
 services:
 
   postgres:
@@ -28,3 +26,16 @@ services:
     build: "apps/fastapi/"
     ports:
       - "8000:8000"
+
+  etl-app:
+    image: "python:3.12-alpine"
+    working_dir: "/code"
+    volumes:
+      - "./apps/etl/:/code/"
+    # cached dependency, run only ETL.
+    command: sh -c "
+      pip install -r requirements.txt \
+      && python etl_pipelines.py
+      "
+    environment:
+      - "PYTHONUNBUFFERED=1"

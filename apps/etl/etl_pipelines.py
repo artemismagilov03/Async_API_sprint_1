@@ -5,7 +5,7 @@ import psycopg
 from elasticsearch import Elasticsearch
 
 import config
-from apps.etl.etl_logger import logger
+from etl_logger import logger
 from etl_utils import backoff
 
 
