@@ -7,7 +7,7 @@ from uuid import UUID
 class Film(BaseModel):
     id: UUID
     title: str
-    imdb_rating: float | None
+    rating: float | None
     description: str | None
     genres: list[str] | None
     description: str | None
