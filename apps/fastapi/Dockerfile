@@ -6,7 +6,7 @@ WORKDIR code/
 
 COPY requirements.txt /code/requirements.txt
 RUN pip --no-cache-dir install -r /code/requirements.txt
-COPY .env /code/.env
+COPY ./.env /code/.env
 COPY ./src /code/src
 
 # need changing after to ready prodaction on `run`
