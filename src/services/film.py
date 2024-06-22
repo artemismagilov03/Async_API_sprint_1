@@ -29,14 +29,21 @@ class FilmService:
         return film
 
     async def get_by_list(
-        self, sort: FilmSortOption, page_size: int, page_number: int
+        self,
+        sort: FilmSortOption,
+        page_size: int,
+        page_number: int,
+        genre: str,
+        actor: str,
+        writer: str,
+        director: str,
     ) -> list[Film]:
         films = (
             None  # await self._films_from_cache(sort, page_size, page_number)
         )
         if not films:
             films = await self._get_films_from_elastic(
-                sort, page_size, page_number
+                sort, page_size, page_number, genre, actor, writer, director
             )
             if not films:
                 return None
@@ -52,16 +59,72 @@ class FilmService:
         return Film(**doc['_source'])
 
     async def _get_films_from_elastic(
-        self, sort: FilmSortOption, page_size: int, page_number: int
+        self,
+        sort: FilmSortOption,
+        page_size: int,
+        page_number: int,
+        genre: str,
+        actor: str,
+        writer: str,
+        director: str,
     ) -> list[Film]:
+        filters = []
+
+        if genre:
+            filters.append({'match': {'genres': genre}})
+        if actor:
+            filters.append(
+                {
+                    'nested': {
+                        'path': 'actors',
+                        'query': {
+                            'bool': {
+                                'must': [{'match': {'actors.name': actor}}]
+                            }
+                        },
+                    }
+                }
+            )
+        if writer:
+            filters.append(
+                {
+                    'nested': {
+                        'path': 'writers',
+                        'query': {
+                            'bool': {
+                                'must': [{'match': {'writers.name': writer}}]
+                            }
+                        },
+                    }
+                }
+            )
+        if director:
+            filters.append(
+                {
+                    'nested': {
+                        'path': 'directors',
+                        'query': {
+                            'bool': {
+                                'must': [
+                                    {'match': {'directors.name': director}}
+                                ]
+                            }
+                        },
+                    }
+                }
+            )
+
+        query = {'bool': {'must': filters}} if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
+        sort = [{row: {'order': order}}]
 
         body = {
-            'query': {'match_all': {}},
+            'query': query,
             'from': page_number,
             'size': page_size,
-            'sort': [{row: {'order': order}}],
+            'sort': sort,
         }
+
         docs = await self.elastic.search(index='movies', body=body)
         return [Film(**doc['_source']) for doc in docs['hits']['hits']]
 
