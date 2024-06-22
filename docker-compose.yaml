@@ -2,6 +2,13 @@ version: "3"
 
 services:
 
+  postgres:
+    image: "postgres:alpine"
+    ports:
+      - "5432:5432"
+    environment:
+      - "POSTGRES_PASSWORD=example"
+
   elastic-search:
     image: "elasticsearch:8.14.1"
     ports:
