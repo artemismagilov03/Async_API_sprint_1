@@ -32,6 +32,8 @@ services:
 
   app:
     build: "apps/fastapi/"
+    volumes:
+      - "./apps/fastapi/:/code/"
     ports:
       - "8000:8000"
 
