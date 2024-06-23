@@ -2,9 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Path
 
-from api.v1.schemas import Film
-from api.v1.enums import FilmSortOption
-from services.film import FilmService, get_film_service
+from src.api.v1.schemas import Film
+from src.api.v1.enums import FilmSortOption
+from src.services.film import FilmService, get_film_service
 
 
 router = APIRouter(prefix='/api/v1/films', tags=['films'])

@@ -2,9 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Path
 
-from api.v1.schemas import Genre
-from api.v1.enums import GenreSortOption
-from services.genre import GenreService, get_genre_service
+from src.api.v1.schemas import Genre
+from src.api.v1.enums import GenreSortOption
+from src.services.genre import GenreService, get_genre_service
 
 
 router = APIRouter(prefix='/api/v1/genres', tags=['genres'])

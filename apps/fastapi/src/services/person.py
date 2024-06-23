@@ -5,10 +5,10 @@ from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from api.v1.enums import PersonSortOption
-from db.elastic import get_elastic
-from db.redis import get_redis
-from api.v1.schemas import Person
+from src.api.v1.enums import PersonSortOption
+from src.db.elastic import get_elastic
+from src.db.redis import get_redis
+from src.api.v1.schemas import Person
 
 PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 

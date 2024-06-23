@@ -2,9 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Path
 
-from api.v1.schemas import Person
-from api.v1.enums import PersonSortOption
-from services.person import PersonService, get_person_service
+from src.api.v1.schemas import Person
+from src.api.v1.enums import PersonSortOption
+from src.services.person import PersonService, get_person_service
 
 
 router = APIRouter(prefix='/api/v1/persons', tags=['persons'])

@@ -5,10 +5,10 @@ from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from api.v1.enums import GenreSortOption
-from db.elastic import get_elastic
-from db.redis import get_redis
-from api.v1.schemas import Genre
+from src.api.v1.enums import GenreSortOption
+from src.api.v1.schemas import Genre
+from src.db.elastic import get_elastic
+from src.db.redis import get_redis
 
 GENRE_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
