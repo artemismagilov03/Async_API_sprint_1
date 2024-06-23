@@ -12,8 +12,7 @@ FROM (SELECT p.id        AS id,
                                   array_agg(DISTINCT role) AS roles
                            FROM person_film_work
                            GROUP BY person_film_work.film_work_id,
-                                    person_film_work.person_id
-                           )
+                                    person_film_work.person_id)
           AS pfw ON p.id = pfw.person_id
       GROUP BY p.id
       ORDER BY p.id) AS sub_query;
