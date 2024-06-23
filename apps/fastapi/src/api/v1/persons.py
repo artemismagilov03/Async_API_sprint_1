@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status, Depends, Query, Path
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 
 from src.api.v1.schemas import Person
 from src.api.v1.enums import PersonSortOption
@@ -22,7 +22,7 @@ async def person_details(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='person not found'
         )
-    return Person(id=person.id, full_name=person.full_name)
+    return Person(uuid=person.id, full_name=person.full_name)
 
 
 @router.get('/', response_model=list[Person])
@@ -47,5 +47,6 @@ async def list_persons(
             status_code=status.HTTP_404_NOT_FOUND, detail='persons not found'
         )
     return [
-        Person(id=person.id, full_name=person.full_name) for person in persons
+        Person(uuid=person.id, full_name=person.full_name)
+        for person in persons
     ]

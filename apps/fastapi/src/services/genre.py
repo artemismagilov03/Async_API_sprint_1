@@ -7,7 +7,7 @@ from fastapi import Depends
 from redis.asyncio import Redis
 
 from src.api.v1.enums import GenreSortOption
-from src.api.v1.schemas import Genre
+from src.api.v1.models import Genre
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src.core import config

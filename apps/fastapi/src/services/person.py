@@ -7,9 +7,9 @@ from fastapi import Depends
 from redis.asyncio import Redis
 
 from src.api.v1.enums import PersonSortOption
+from src.api.v1.models import Person
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
-from src.api.v1.schemas import Person
 from src.core import config
 
 
@@ -43,9 +43,7 @@ class PersonService:
 
         return persons
 
-    async def _get_person_from_elastic(
-        self, uuid: UUID
-    ) -> Optional[Person]:
+    async def _get_person_from_elastic(self, uuid: UUID) -> Optional[Person]:
         try:
             doc = await self.elastic.get(index='persons', id=str(uuid))
         except NotFoundError:

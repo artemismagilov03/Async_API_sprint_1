@@ -7,7 +7,7 @@ from fastapi import Depends
 from redis.asyncio import Redis
 
 from src.api.v1.enums import FilmSortOption
-from src.api.v1.schemas import Film
+from src.api.v1.models import Film
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src.core import config
