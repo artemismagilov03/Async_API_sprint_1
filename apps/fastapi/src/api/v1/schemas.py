@@ -6,10 +6,12 @@ class BasePerson(BaseModel):
     id: UUID
     full_name: str
 
+
 class Genre(BaseModel):
-    name: str
     id: UUID
-    
+    name: str
+
+
 class Film(BaseModel):
     id: UUID
     title: str
@@ -28,6 +30,7 @@ class Film(BaseModel):
 class PersonFilmRoles(BaseModel):
     id: UUID
     roles: list[str] | None
-    
+
+
 class Person(BasePerson):
     films: list[PersonFilmRoles] | None
