@@ -1,6 +1,7 @@
 from typing import Annotated
+from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status, Depends, Query, Path
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 
 from src.api.v1.schemas import Film
 from src.api.v1.enums import FilmSortOption
@@ -10,13 +11,13 @@ from src.services.film import FilmService, get_film_service
 router = APIRouter(prefix='/api/v1/films', tags=['films'])
 
 
-@router.get('/{film_id}', response_model=Film)
+@router.get('/{uuid}', response_model=Film)
 async def film_details(
-    film_id: Annotated[str, Path(max_length=255)],
+    uuid: UUID,
     film_service: FilmService = Depends(get_film_service),
 ) -> Film:
     """Page with single film"""
-    film = await film_service.get_by_id(film_id)
+    film = await film_service.get_by_id(uuid)
     if not film:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='film not found'

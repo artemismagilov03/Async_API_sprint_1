@@ -1,5 +1,6 @@
 from functools import lru_cache
 from typing import Optional
+from uuid import UUID
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
@@ -17,9 +18,9 @@ class FilmService:
         self.redis = redis
         self.elastic = elastic
 
-    async def get_by_id(self, film_id: str) -> Optional[Film]:
-        if not (film := await self._film_from_cache(film_id)):
-            if not (film := await self._get_film_from_elastic(film_id)):
+    async def get_by_id(self, uuid: UUID) -> Optional[Film]:
+        if not (film := await self._film_from_cache(uuid)):
+            if not (film := await self._get_film_from_elastic(uuid)):
                 return None
             await self._put_film_to_cache(film)
 
@@ -48,9 +49,9 @@ class FilmService:
 
         return films
 
-    async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
+    async def _get_film_from_elastic(self, uuid: UUID) -> Optional[Film]:
         try:
-            doc = await self.elastic.get(index='movies', id=film_id)
+            doc = await self.elastic.get(index='movies', id=str(uuid))
         except NotFoundError:
             return None
         return Film(**doc['_source'])
@@ -90,8 +91,8 @@ class FilmService:
         docs = await self.elastic.search(index='movies', body=body)
         return [Film(**doc['_source']) for doc in docs['hits']['hits']]
 
-    async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        if data := await self.redis.get(film_id):
+    async def _film_from_cache(self, uuid: UUID) -> Optional[Film]:
+        if data := await self.redis.get(str(uuid)):
             return None
         film = Film.model_validate_json(data)
         return film
