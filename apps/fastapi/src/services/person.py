@@ -9,8 +9,7 @@ from src.api.v1.enums import PersonSortOption
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src.api.v1.schemas import Person
-
-PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5
+from src.core import config
 
 
 class PersonService:
@@ -19,12 +18,10 @@ class PersonService:
         self.elastic = elastic
 
     async def get_by_id(self, person_id: str) -> Optional[Person]:
-        person = None  # await self._person_from_cache(film_id)
-        if not person:
-            person = await self._get_person_from_elastic(person_id)
-            if not person:
+        if not (person := await self._person_from_cache(person_id)):
+            if not (person := await self._get_person_from_elastic(person_id)):
                 return None
-            # await self._put_person_to_cache(film)
+            await self._put_person_to_cache(person)
 
         return person
 
@@ -33,15 +30,11 @@ class PersonService:
         sort: PersonSortOption,
         page_size: int,
         page_number: int,
-        genre: str,
-        actor: str,
-        writer: str,
-        director: str,
     ) -> list[Person]:
         persons = None  # await self._persons_from_cache(sort, page_size, page_number)
         if not persons:
             persons = await self._get_persons_from_elastic(
-                sort, page_size, page_number, genre, actor, writer, director
+                sort, page_size, page_number
             )
             if not persons:
                 return None
@@ -63,15 +56,8 @@ class PersonService:
         sort: PersonSortOption,
         page_size: int,
         page_number: int,
-        genre: str,
-        actor: str,
-        writer: str,
-        director: str,
     ) -> list[Person]:
-        # need implementation filtering persons by diff fields
-        filters = []
-
-        query = {'bool': {'must': filters}} if filters else {'match_all': {}}
+        query = {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
         sort = [{row: {'order': order}}]
 
@@ -85,13 +71,12 @@ class PersonService:
         docs = await self.elastic.search(index='persons', body=body)
         return [Person(**doc['_source']) for doc in docs['hits']['hits']]
 
-    # async def _person_from_cache(self, film_id: str) -> Optional[Film]:
-    #     data = await self.redis.get(film_id)
-    #     if not data:
-    #         return None
-    #
-    #     film = Film.model_validate_json(data)
-    #     return film
+    async def _person_from_cache(self, person_id: str) -> Optional[Person]:
+        if not (data := await self.redis.get(person_id)):
+            return None
+
+        person = Person.model_validate_json(data)
+        return person
 
     # async def _persons_from_cache(
     #     self, sort: FilmRow, page_size: int, page_number: int
@@ -103,10 +88,13 @@ class PersonService:
     #     film = Film.parse_raw(data)
     #     return film
 
-    # async def _put_persons_to_cache(self, film: Film):
-    #     await self.redis.set(
-    #         film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
-    #     )
+    async def _put_person_to_cache(self, person: Person):
+        await self.redis.set(
+            str(person.id),
+            person.json(),
+            config.PERSON_CACHE_EXPIRE_IN_SECONDS,
+        )
+
     #
     # async def _put_persons_to_cache(self, films: list[Film]):
     #     await self.redis.set(

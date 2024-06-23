@@ -9,8 +9,7 @@ from src.api.v1.enums import GenreSortOption
 from src.api.v1.schemas import Genre
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
-
-GENRE_CACHE_EXPIRE_IN_SECONDS = 60 * 5
+from src.core import config
 
 
 class GenreService:
@@ -91,7 +90,7 @@ class GenreService:
 
     async def _put_genre_to_cache(self, genre: Genre):
         await self.redis.set(
-            str(genre.id), genre.json(), GENRE_CACHE_EXPIRE_IN_SECONDS
+            str(genre.id), genre.json(), config.GENRE_CACHE_EXPIRE_IN_SECONDS
         )
 
     #

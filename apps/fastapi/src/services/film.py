@@ -9,8 +9,7 @@ from src.api.v1.enums import FilmSortOption
 from src.api.v1.schemas import Film
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
-
-FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
+from src.core import config
 
 
 class FilmService:
@@ -71,46 +70,11 @@ class FilmService:
         if genre:
             filters.append({'match': {'genres': genre}})
         if actor:
-            filters.append(
-                {
-                    'nested': {
-                        'path': 'actors',
-                        'query': {
-                            'bool': {
-                                'must': [{'match': {'actors.name': actor}}]
-                            }
-                        },
-                    }
-                }
-            )
+            filters.append({'match': {'actors.name': actor}})
         if writer:
-            filters.append(
-                {
-                    'nested': {
-                        'path': 'writers',
-                        'query': {
-                            'bool': {
-                                'must': [{'match': {'writers.name': writer}}]
-                            }
-                        },
-                    }
-                }
-            )
+            filters.append({'match': {'writers.name': writer}})
         if director:
-            filters.append(
-                {
-                    'nested': {
-                        'path': 'directors',
-                        'query': {
-                            'bool': {
-                                'must': [
-                                    {'match': {'directors.name': director}}
-                                ]
-                            }
-                        },
-                    }
-                }
-            )
+            filters.append({'match': {'directors.name': director}})
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
@@ -144,7 +108,7 @@ class FilmService:
 
     async def _put_film_to_cache(self, film: Film):
         await self.redis.set(
-            str(film.id), film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
+            str(film.id), film.json(), config.FILM_CACHE_EXPIRE_IN_SECONDS
         )
 
     #
