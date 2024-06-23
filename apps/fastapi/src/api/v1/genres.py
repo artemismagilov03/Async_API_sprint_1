@@ -11,7 +11,7 @@ from src.services.genre import GenreService, get_genre_service
 router = APIRouter(prefix='/api/v1/genres', tags=['genres'])
 
 
-@router.get('/{genre_id}', response_model=Genre)
+@router.get('/{uuid}', response_model=Genre)
 async def genre_details(
     uuid: UUID,
     genre_service: GenreService = Depends(get_genre_service),

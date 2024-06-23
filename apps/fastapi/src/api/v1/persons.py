@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Path
 
@@ -10,13 +11,13 @@ from src.services.person import PersonService, get_person_service
 router = APIRouter(prefix='/api/v1/persons', tags=['persons'])
 
 
-@router.get('/{person_id}', response_model=Person)
+@router.get('/{uuid}', response_model=Person)
 async def person_details(
-    person_id: Annotated[str, Path(max_length=255)],
+    uuid: UUID,
     person_service: PersonService = Depends(get_person_service),
 ) -> Person:
     """Page with single person"""
-    person = await person_service.get_by_id(person_id)
+    person = await person_service.get_by_id(uuid)
     if not person:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='person not found'
