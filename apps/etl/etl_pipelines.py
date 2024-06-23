@@ -39,7 +39,9 @@ class ETL:
 
     def pipeline_persons(
         self, pg_conn: psycopg.Cursor, es_conn: Elasticsearch
-    ): ...
+    ):
+        self.indexing_es('persons', 'sqls/fetch_persons.sql', pg_conn, es_conn)
+        logger.info('Successfully indexing persons')
 
     def indexing_es(
         self,
@@ -77,7 +79,7 @@ class ETL:
         with self.create_conn_pg() as pg_conn, self.create_conn_es() as es_conn:
             self.pipeline_film_works(pg_conn, es_conn)
             self.pipeline_genres(pg_conn, es_conn)
-            # self.pipeline_persons(pg_conn, es_conn)
+            self.pipeline_persons(pg_conn, es_conn)
         logger.info('ETL process successfully finished')
 
 
