@@ -15,7 +15,7 @@ class Genre(BaseModel):
 class Film(BaseModel):
     id: UUID
     title: str
-    imdb_rating: float | None
+    rating: float | None
     description: str | None
     genres: list[Genre] | None
     description: str | None
