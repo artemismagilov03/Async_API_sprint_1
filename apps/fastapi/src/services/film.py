@@ -24,7 +24,7 @@ class FilmService:
             film = await self._get_film_from_elastic(film_id)
             if not film:
                 return None
-            # await self._put_film_to_cache(film)
+            await self._put_film_to_cache(film)
 
         return film
 
@@ -144,10 +144,11 @@ class FilmService:
     #     film = Film.parse_raw(data)
     #     return film
 
-    # async def _put_film_to_cache(self, film: Film):
-    #     await self.redis.set(
-    #         film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
-    #     )
+    async def _put_film_to_cache(self, film: Film):
+        await self.redis.set(
+            str(film.id), film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
+        )
+
     #
     # async def _put_films_to_cache(self, films: list[Film]):
     #     await self.redis.set(
