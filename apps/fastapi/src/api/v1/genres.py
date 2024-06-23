@@ -21,7 +21,7 @@ async def genre_details(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='genre not found'
         )
-    return Genre(id=genre.id, name=genre.name)
+    return Genre(uuid=genre.id, name=genre.name)
 
 
 @router.get('/', response_model=list[Genre])
@@ -37,4 +37,4 @@ async def list_genres(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='films not found'
         )
-    return [Genre(id=genre.id, name=genre.name) for genre in genres]
+    return [Genre(uuid=genre.id, name=genre.name) for genre in genres]

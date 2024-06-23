@@ -1,36 +1,22 @@
-from pydantic import BaseModel
 from uuid import UUID
 
 
-class BasePerson(BaseModel):
-    id: UUID
-    full_name: str
+class Film:
+    uuid: UUID
+    title: str
 
 
-class Genre(BaseModel):
-    id: UUID
+class Genre:
+    uuid: UUID
     name: str
 
 
-class Film(BaseModel):
-    id: UUID
-    title: str
-    rating: float | None
-    description: str | None
-    genres: list[Genre] | None
-    description: str | None
-    directors_names: str | None
-    actors_names: str | None
-    writers_names: str | None
-    directors: list[BasePerson] | None
-    actors: list[BasePerson] | None
-    writers: list[BasePerson] | None
+class Person:
+    uuid: UUID
+    full_name: str
+    films: list['PersonFilmRoles']
 
 
-class PersonFilmRoles(BaseModel):
-    id: UUID
-    roles: list[str] | None
-
-
-class Person(BasePerson):
-    films: list[PersonFilmRoles] | None
+class PersonFilmRoles:
+    uuid: UUID
+    roles: list[str]
