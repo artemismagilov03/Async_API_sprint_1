@@ -15,3 +15,11 @@ class GenreSortOption(StrEnum):
 
     name = 'name'
     neg_name = '-name'
+
+
+class PersonSortOption(StrEnum):
+    id = 'id'
+    neg_id = '-id'
+
+    full_name = 'full_name'
+    neg_full_name = '-full_name'

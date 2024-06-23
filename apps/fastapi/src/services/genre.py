@@ -10,7 +10,7 @@ from db.elastic import get_elastic
 from db.redis import get_redis
 from api.v1.schemas import Genre
 
-FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
+GENRE_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
 
 class GenreService:
@@ -18,10 +18,10 @@ class GenreService:
         self.redis = redis
         self.elastic = elastic
 
-    async def get_by_id(self, film_id: str) -> Optional[Genre]:
+    async def get_by_id(self, genre_id: str) -> Optional[Genre]:
         genre = None  # await self._film_from_cache(film_id)
         if not genre:
-            genre = await self._get_genre_from_elastic(film_id)
+            genre = await self._get_genre_from_elastic(genre_id)
             if not genre:
                 return None
             # await self._put_genre_to_cache(film)
@@ -71,7 +71,7 @@ class GenreService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index='movies', body=body)
+        docs = await self.elastic.search(index='genres', body=body)
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
     # async def _genre_from_cache(self, film_id: str) -> Optional[Film]:
