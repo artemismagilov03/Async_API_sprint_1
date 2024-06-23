@@ -1,5 +1,6 @@
 from functools import lru_cache
 from typing import Optional
+from uuid import UUID
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
@@ -17,9 +18,9 @@ class GenreService:
         self.redis = redis
         self.elastic = elastic
 
-    async def get_by_id(self, genre_id: str) -> Optional[Genre]:
-        if not (genre := await self._genre_from_cache(genre_id)):
-            if not (genre := await self._get_genre_from_elastic(genre_id)):
+    async def get_by_id(self, uuid: UUID) -> Optional[Genre]:
+        if not (genre := await self._genre_from_cache(uuid)):
+            if not (genre := await self._get_genre_from_elastic(uuid)):
                 return None
             await self._put_genre_to_cache(genre)
 
@@ -44,9 +45,9 @@ class GenreService:
 
         return genres
 
-    async def _get_genre_from_elastic(self, genre_id: str) -> Optional[Genre]:
+    async def _get_genre_from_elastic(self, uuid: UUID) -> Optional[Genre]:
         try:
-            doc = await self.elastic.get(index='genres', id=genre_id)
+            doc = await self.elastic.get(index='genres', id=str(uuid))
         except NotFoundError:
             return None
         return Genre(**doc['_source'])
@@ -71,8 +72,8 @@ class GenreService:
         docs = await self.elastic.search(index='genres', body=body)
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
-    async def _genre_from_cache(self, genre_id: str) -> Optional[Genre]:
-        if not (data := await self.redis.get(genre_id)):
+    async def _genre_from_cache(self, uuid: UUID) -> Optional[Genre]:
+        if not (data := await self.redis.get(str(uuid))):
             return None
 
         genre = Genre.model_validate_json(data)

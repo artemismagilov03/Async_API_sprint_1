@@ -1,6 +1,7 @@
 from typing import Annotated
+from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status, Depends, Query, Path
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 
 from src.api.v1.schemas import Genre
 from src.api.v1.enums import GenreSortOption
@@ -12,11 +13,11 @@ router = APIRouter(prefix='/api/v1/genres', tags=['genres'])
 
 @router.get('/{genre_id}', response_model=Genre)
 async def genre_details(
-    genre_id: Annotated[str, Path(max_length=255)],
+    uuid: UUID,
     genre_service: GenreService = Depends(get_genre_service),
 ) -> Genre:
     """Page with single genre"""
-    if not (genre := await genre_service.get_by_id(genre_id)):
+    if not (genre := await genre_service.get_by_id(uuid)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='genre not found'
         )
