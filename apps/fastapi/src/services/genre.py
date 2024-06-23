@@ -71,7 +71,7 @@ class GenreService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index='movies', body=body)
+        docs = await self.elastic.search(index='genres', body=body)
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
     # async def _genre_from_cache(self, film_id: str) -> Optional[Film]:
