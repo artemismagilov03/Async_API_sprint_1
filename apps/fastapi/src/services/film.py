@@ -19,7 +19,7 @@ class FilmService:
         self.elastic = elastic
 
     async def get_by_id(self, film_id: str) -> Optional[Film]:
-        film = None  # await self._film_from_cache(film_id)
+        film = await self._film_from_cache(film_id)
         if not film:
             film = await self._get_film_from_elastic(film_id)
             if not film:
@@ -128,13 +128,11 @@ class FilmService:
         docs = await self.elastic.search(index='movies', body=body)
         return [Film(**doc['_source']) for doc in docs['hits']['hits']]
 
-    # async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-    #     data = await self.redis.get(film_id)
-    #     if not data:
-    #         return None
-    #
-    #     film = Film.model_validate_json(data)
-    #     return film
+    async def _film_from_cache(self, film_id: str) -> Optional[Film]:
+        if data := await self.redis.get(film_id):
+            return None
+        film = Film.model_validate_json(data)
+        return film
 
     # async def _films_from_cache(
     #     self, sort: FilmRow, page_size: int, page_number: int
