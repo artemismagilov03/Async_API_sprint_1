@@ -19,10 +19,8 @@ class FilmService:
         self.elastic = elastic
 
     async def get_by_id(self, film_id: str) -> Optional[Film]:
-        film = await self._film_from_cache(film_id)
-        if not film:
-            film = await self._get_film_from_elastic(film_id)
-            if not film:
+        if not (film := await self._film_from_cache(film_id)):
+            if not (film := await self._get_film_from_elastic(film_id)):
                 return None
             await self._put_film_to_cache(film)
 
