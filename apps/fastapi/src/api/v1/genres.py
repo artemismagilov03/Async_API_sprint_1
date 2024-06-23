@@ -16,10 +16,9 @@ async def genre_details(
     genre_service: GenreService = Depends(get_genre_service),
 ) -> Genre:
     """Page with single genre"""
-    genre = await genre_service.get_by_id(genre_id)
-    if not genre:
+    if not (genre := await genre_service.get_by_id(genre_id)):
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='film not found'
+            status_code=status.HTTP_404_NOT_FOUND, detail='genre not found'
         )
     return Genre(id=genre.id, name=genre.name)
 

@@ -19,12 +19,10 @@ class GenreService:
         self.elastic = elastic
 
     async def get_by_id(self, genre_id: str) -> Optional[Genre]:
-        genre = None  # await self._film_from_cache(film_id)
-        if not genre:
-            genre = await self._get_genre_from_elastic(genre_id)
-            if not genre:
+        if not (genre := await self._genre_from_cache(genre_id)):
+            if not (genre := await self._get_genre_from_elastic(genre_id)):
                 return None
-            # await self._put_genre_to_cache(film)
+            await self._put_genre_to_cache(genre)
 
         return genre
 
@@ -74,13 +72,12 @@ class GenreService:
         docs = await self.elastic.search(index='genres', body=body)
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
-    # async def _genre_from_cache(self, film_id: str) -> Optional[Film]:
-    #     data = await self.redis.get(film_id)
-    #     if not data:
-    #         return None
-    #
-    #     film = Film.model_validate_json(data)
-    #     return film
+    async def _genre_from_cache(self, genre_id: str) -> Optional[Genre]:
+        if not (data := await self.redis.get(genre_id)):
+            return None
+
+        genre = Genre.model_validate_json(data)
+        return genre
 
     # async def _genres_from_cache(
     #     self, sort: FilmRow, page_size: int, page_number: int
@@ -92,10 +89,11 @@ class GenreService:
     #     film = Film.parse_raw(data)
     #     return film
 
-    # async def _put_genre_to_cache(self, film: Film):
-    #     await self.redis.set(
-    #         film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
-    #     )
+    async def _put_genre_to_cache(self, genre: Genre):
+        await self.redis.set(
+            str(genre.id), genre.json(), GENRE_CACHE_EXPIRE_IN_SECONDS
+        )
+
     #
     # async def _put_genres_to_cache(self, films: list[Film]):
     #     await self.redis.set(
