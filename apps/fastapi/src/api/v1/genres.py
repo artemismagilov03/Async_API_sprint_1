@@ -38,3 +38,22 @@ async def list_genres(
             status_code=status.HTTP_404_NOT_FOUND, detail='films not found'
         )
     return [Genre(uuid=genre.id, name=genre.name) for genre in genres]
+
+
+@router.get('/search', response_model=list[Genre])
+async def search_genres(
+    query: Annotated[str, Query(max_length=255, title='Genre name')] = '',
+    sort: GenreSortOption = GenreSortOption.id,
+    page_size: Annotated[int, Query(ge=0, le=100)] = 10,
+    page_number: Annotated[int, Query(ge=0, le=100)] = 0,
+    genre_service: GenreService = Depends(get_genre_service),
+) -> list[Genre]:
+    """Main page after search with list of genres"""
+    genres = await genre_service.search_by_name(
+        query, sort, page_size, page_number
+    )
+    if not genres:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail='films not found'
+        )
+    return [Genre(uuid=genre.id, name=genre.name) for genre in genres]
