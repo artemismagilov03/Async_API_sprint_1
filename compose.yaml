@@ -25,10 +25,9 @@ services:
       - "xpack.security.enabled=false"
 
   redis:
-    image: "redis/redis-stack:latest"
+    image: "redis:alpine"
     ports:
       - "6379:6379" # Redis Server
-      - "8001:8001" # Redis Insight
 
   app:
     build: "apps/fastapi/"
