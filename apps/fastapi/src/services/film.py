@@ -49,6 +49,37 @@ class FilmService:
 
         return films
 
+    async def search_by_title(
+        self,
+        query: str,
+        sort: FilmSortOption,
+        page_size: int,
+        page_number: int,
+        genre: str,
+        actor: str,
+        writer: str,
+        director: str,
+    ) -> list[Film]:
+        films = (
+            None  # await self._films_from_cache(sort, page_size, page_number)
+        )
+        if not films:
+            films = await self._search_films_from_elastic(
+                query,
+                sort,
+                page_size,
+                page_number,
+                genre,
+                actor,
+                writer,
+                director,
+            )
+            if not films:
+                return None
+            # await self._put_film_to_cache(films)
+
+        return films
+
     async def _get_film_from_elastic(self, uuid: UUID) -> Optional[Film]:
         try:
             doc = await self.elastic.get(index='movies', id=str(uuid))
@@ -67,6 +98,42 @@ class FilmService:
         director: str,
     ) -> list[Film]:
         filters = []
+
+        if genre:
+            filters.append({'match': {'genres': genre}})
+        if actor:
+            filters.append({'match': {'actors.name': actor}})
+        if writer:
+            filters.append({'match': {'writers.name': writer}})
+        if director:
+            filters.append({'match': {'directors.name': director}})
+
+        query = {'bool': {'must': filters}} if filters else {'match_all': {}}
+        order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
+        sort = [{row: {'order': order}}]
+
+        body = {
+            'query': query,
+            'from': page_number,
+            'size': page_size,
+            'sort': sort,
+        }
+
+        docs = await self.elastic.search(index='movies', body=body)
+        return [Film(**doc['_source']) for doc in docs['hits']['hits']]
+
+    async def _search_films_from_elastic(
+        self,
+        query: str,
+        sort: FilmSortOption,
+        page_size: int,
+        page_number: int,
+        genre: str,
+        actor: str,
+        writer: str,
+        director: str,
+    ) -> list[Film]:
+        filters = [{'match': {'title': query}}] if query else []
 
         if genre:
             filters.append({'match': {'genres': genre}})
