@@ -1,6 +1,6 @@
 SELECT to_json(sub_query)
 FROM (SELECT fw.id                                     AS id,
-             fw.rating                                 AS imdb_rating,
+             fw.rating                                 AS rating,
              COALESCE(json_agg(DISTINCT g.name), '[]') AS genres,
              fw.title                                  AS title,
              fw.description                            AS description,
