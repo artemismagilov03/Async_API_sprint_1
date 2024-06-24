@@ -22,7 +22,7 @@ async def film_details(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='film not found'
         )
-    return Film(uuid=film.id, title=film.title)
+    return Film(uuid=film.id, title=film.title, imdb_rating=film.rating)
 
 
 @router.get('/', response_model=list[Film])
@@ -46,4 +46,4 @@ async def list_films(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='films not found'
         )
-    return [Film(uuid=film.id, title=film.title) for film in films]
+    return [Film(uuid=film.id, title=film.title, imdb_rating=film.rating) for film in films]

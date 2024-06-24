@@ -4,6 +4,7 @@ from uuid import UUID
 class Film:
     uuid: UUID
     title: str
+    imdb_rating: float
 
 
 class Genre:
