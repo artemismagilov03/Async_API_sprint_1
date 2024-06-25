@@ -50,3 +50,33 @@ async def list_persons(
         Person(uuid=person.id, full_name=person.full_name)
         for person in persons
     ]
+
+
+@router.get('/search', response_model=list[Person])
+async def search_persons(
+    query: Annotated[
+        str, Query(max_length=255, title='Person full_name')
+    ] = '',
+    sort: PersonSortOption = PersonSortOption.id,
+    page_size: Annotated[int, Query(ge=0, le=100)] = 10,
+    page_number: Annotated[int, Query(ge=0, le=100)] = 0,
+    genre: Annotated[str, Query(max_length=255, title='Genre name')] = '',
+    actor: Annotated[str, Query(max_length=255, title='Actor name')] = '',
+    writer: Annotated[str, Query(max_length=255, title='Writer name')] = '',
+    director: Annotated[
+        str, Query(max_length=255, title='Director name')
+    ] = '',
+    person_service: PersonService = Depends(get_person_service),
+) -> list[Person]:
+    """Main page after search with list of persons"""
+    persons = await person_service.search_by_full_name(
+        query, sort, page_size, page_number, genre, actor, writer, director
+    )
+    if not persons:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail='persons not found'
+        )
+    return [
+        Person(uuid=person.id, full_name=person.full_name)
+        for person in persons
+    ]
