@@ -74,6 +74,21 @@ class FilmService:
 
         return films
 
+    async def get_films_by_person(self, uuid: UUID, sort, page_size: int, page_number: int):
+        films = None  # await self._films_from_cache(sort, page_size, page_number)
+        if not films:
+            films = await self._get_films_by_person_from_elastic(
+                uuid,
+                sort,
+                page_size,
+                page_number,
+            )
+            if not films:
+                return None
+            # await self._put_film_to_cache(films)
+
+        return films
+
     async def _get_film_from_elastic(self, uuid: UUID) -> Optional[Film]:
         try:
             doc = await self.elastic.get(index='movies', id=str(uuid))
@@ -139,6 +154,23 @@ class FilmService:
             filters.append({'match': {'directors.name': director}})
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
+        order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
+        sort = [{row: {'order': order}}]
+
+        body = {
+            'query': query,
+            'from': page_number,
+            'size': page_size,
+            'sort': sort,
+        }
+
+        docs = await self.elastic.search(index='movies', body=body)
+        return [Film(**doc['_source']) for doc in docs['hits']['hits']]
+
+    async def _get_films_by_person_from_elastic(
+        self, uuid: UUID, sort: FilmSortOption, page_size: int, page_number: int
+    ):
+        query = {'bool': {'should': [{'actors.id': uuid}, {'directors.id': uuid}, {'writers.id': uuid}]}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
         sort = [{row: {'order': order}}]
 

@@ -57,3 +57,18 @@ async def search_films(
     if not films:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
     return [Film(uuid=film.id, title=film.title, imdb_rating=film.rating) for film in films]
+
+
+@router.get('/{uuid}/film', response_model=list[Film])
+async def person_films(
+    uuid: UUID,
+    sort: FilmSortOption = FilmSortOption.id,
+    page_size: Annotated[int, Query(ge=0, le=100)] = 10,
+    page_number: Annotated[int, Query(ge=0, le=100)] = 0,
+    film_service: FilmService = Depends(get_film_service),
+) -> list[Film]:
+    """Main page with list of films by person"""
+    films = await film_service.get_films_by_person(uuid, sort, page_size, page_number)
+    if not films:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
+    return [Film(uuid=film.id, title=film.title, imdb_rating=film.imdb_rating) for film in films]
