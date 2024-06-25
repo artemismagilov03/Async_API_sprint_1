@@ -1,10 +1,12 @@
-from pydantic import BaseModel
 from uuid import UUID
+
+from pydantic import BaseModel
 
 
 class BasePerson(BaseModel):
     id: UUID
     full_name: str
+
 
 class PersonFilmRoles(BaseModel):
     id: UUID

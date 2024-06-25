@@ -8,9 +8,9 @@ from redis.asyncio import Redis
 
 from movies_api.api.v1.enums import PersonSortOption
 from movies_api.api.v1.models import Person
+from movies_api.core import config
 from movies_api.db.elastic import get_elastic
 from movies_api.db.redis import get_redis
-from movies_api.core import config
 
 
 class PersonService:
@@ -34,9 +34,7 @@ class PersonService:
     ) -> list[Person]:
         persons = None  # await self._persons_from_cache(sort, page_size, page_number)
         if not persons:
-            persons = await self._get_persons_from_elastic(
-                sort, page_size, page_number
-            )
+            persons = await self._get_persons_from_elastic(sort, page_size, page_number)
             if not persons:
                 return None
             # await self._put_person_to_cache(films)
@@ -54,9 +52,7 @@ class PersonService:
         writer: str,
         director: str,
     ):
-        persons = (
-            None  # await self._films_from_cache(sort, page_size, page_number)
-        )
+        persons = None  # await self._films_from_cache(sort, page_size, page_number)
         if not persons:
             persons = await self._search_persons_from_elastic(
                 query,

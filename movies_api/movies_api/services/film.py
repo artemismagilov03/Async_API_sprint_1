@@ -8,9 +8,9 @@ from redis.asyncio import Redis
 
 from movies_api.api.v1.enums import FilmSortOption
 from movies_api.api.v1.models import Film
+from movies_api.core import config
 from movies_api.db.elastic import get_elastic
 from movies_api.db.redis import get_redis
-from movies_api.core import config
 
 
 class FilmService:
@@ -36,13 +36,9 @@ class FilmService:
         writer: str,
         director: str,
     ) -> list[Film]:
-        films = (
-            None  # await self._films_from_cache(sort, page_size, page_number)
-        )
+        films = None  # await self._films_from_cache(sort, page_size, page_number)
         if not films:
-            films = await self._get_films_from_elastic(
-                sort, page_size, page_number, genre, actor, writer, director
-            )
+            films = await self._get_films_from_elastic(sort, page_size, page_number, genre, actor, writer, director)
             if not films:
                 return None
             # await self._put_film_to_cache(films)
@@ -60,9 +56,7 @@ class FilmService:
         writer: str,
         director: str,
     ) -> list[Film]:
-        films = (
-            None  # await self._films_from_cache(sort, page_size, page_number)
-        )
+        films = None  # await self._films_from_cache(sort, page_size, page_number)
         if not films:
             films = await self._search_films_from_elastic(
                 query,
@@ -175,9 +169,7 @@ class FilmService:
     #     return film
 
     async def _put_film_to_cache(self, film: Film):
-        await self.redis.set(
-            str(film.id), film.json(), config.FILM_CACHE_EXPIRE_IN_SECONDS
-        )
+        await self.redis.set(str(film.id), film.json(), config.FILM_CACHE_EXPIRE_IN_SECONDS)
 
     #
     # async def _put_films_to_cache(self, films: list[Film]):

@@ -8,9 +8,9 @@ from redis.asyncio import Redis
 
 from movies_api.api.v1.enums import GenreSortOption
 from movies_api.api.v1.models import Genre
+from movies_api.core import config
 from movies_api.db.elastic import get_elastic
 from movies_api.db.redis import get_redis
-from movies_api.core import config
 
 
 class GenreService:
@@ -32,13 +32,9 @@ class GenreService:
         page_size: int,
         page_number: int,
     ) -> list[Genre]:
-        genres = (
-            None  # await self._genres_from_cache(sort, page_size, page_number)
-        )
+        genres = None  # await self._genres_from_cache(sort, page_size, page_number)
         if not genres:
-            genres = await self._get_genres_from_elastic(
-                sort, page_size, page_number
-            )
+            genres = await self._get_genres_from_elastic(sort, page_size, page_number)
             if not genres:
                 return None
             # await self._put_genre_to_cache(films)
@@ -52,13 +48,9 @@ class GenreService:
         page_size: int,
         page_number: int,
     ) -> list[Genre]:
-        genres = (
-            None  # await self._genres_from_cache(sort, page_size, page_number)
-        )
+        genres = None  # await self._genres_from_cache(sort, page_size, page_number)
         if not genres:
-            genres = await self._search_genres_from_elastic(
-                query, sort, page_size, page_number
-            )
+            genres = await self._search_genres_from_elastic(query, sort, page_size, page_number)
             if not genres:
                 return None
             # await self._put_genre_to_cache(films)
@@ -133,9 +125,7 @@ class GenreService:
     #     return film
 
     async def _put_genre_to_cache(self, genre: Genre):
-        await self.redis.set(
-            str(genre.id), genre.json(), config.GENRE_CACHE_EXPIRE_IN_SECONDS
-        )
+        await self.redis.set(str(genre.id), genre.json(), config.GENRE_CACHE_EXPIRE_IN_SECONDS)
 
     #
     # async def _put_genres_to_cache(self, films: list[Film]):
