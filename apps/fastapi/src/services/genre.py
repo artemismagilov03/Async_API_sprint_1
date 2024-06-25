@@ -45,6 +45,26 @@ class GenreService:
 
         return genres
 
+    async def search_by_name(
+        self,
+        query: str,
+        sort: GenreSortOption,
+        page_size: int,
+        page_number: int,
+    ) -> list[Genre]:
+        genres = (
+            None  # await self._genres_from_cache(sort, page_size, page_number)
+        )
+        if not genres:
+            genres = await self._search_genres_from_elastic(
+                query, sort, page_size, page_number
+            )
+            if not genres:
+                return None
+            # await self._put_genre_to_cache(films)
+
+        return genres
+
     async def _get_genre_from_elastic(self, uuid: UUID) -> Optional[Genre]:
         try:
             doc = await self.elastic.get(index='genres', id=str(uuid))
@@ -70,6 +90,29 @@ class GenreService:
         }
 
         docs = await self.elastic.search(index='genres', body=body)
+        return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
+
+    async def _search_genres_from_elastic(
+        self,
+        query: str,
+        sort: GenreSortOption,
+        page_size: int,
+        page_number: int,
+    ) -> list[Genre]:
+        filters = [{'match': {'name': query}}] if query else []
+
+        query = {'bool': {'must': filters}} if filters else {'match_all': {}}
+        order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
+        sort = [{row: {'order': order}}]
+
+        body = {
+            'query': query,
+            'from': page_number,
+            'size': page_size,
+            'sort': sort,
+        }
+
+        docs = await self.elastic.search(index='movies', body=body)
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _genre_from_cache(self, uuid: UUID) -> Optional[Genre]:
