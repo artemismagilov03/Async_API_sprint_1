@@ -6,7 +6,6 @@ class BasePerson(BaseModel):
     id: UUID
     full_name: str
 
-
 class PersonFilmRoles(BaseModel):
     id: UUID
     roles: list[str] | None

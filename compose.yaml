@@ -1,19 +1,13 @@
 services:
 
   postgres:
-    image: postgres:16-alpine
-    container_name: postgres_app
-    env_file:
-      - ./.env
+    image: "postgres:alpine"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER} 
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      - "POSTGRES_PASSWORD=example"
     volumes:
-      - ../dump.sql:/docker-entrypoint-initdb.d/setup.sql
-      - ../postgresql/data:/var/lib/postgresql/data
+      - "./dump.sql:/docker-entrypoint-initdb.d/dump.sql"
     ports:
-      - "${POSTGRES_EXTERNAL_PORT}:${POSTGRES_INTERNAL_PORT}"      
+      - "5432:5432"
 
   elastic-search:
     image: "elasticsearch:8.14.1"
@@ -29,10 +23,10 @@ services:
     ports:
       - "6379:6379" # Redis Server
 
-  app:
-    build: "apps/fastapi/"
+  api-app:
+    build: "./movies_api/"
     volumes:
-      - "./apps/fastapi/:/code/"
+      - "./movies_api/:/code/"
     ports:
       - "8000:8000"
 
@@ -40,7 +34,7 @@ services:
     image: "python:3.12-alpine"
     working_dir: "/code"
     volumes:
-      - "./apps/etl/:/code/"
+      - "./etl/:/code/"
     # cached dependency, run only ETL.
     command: sh -c "
       pip install -r requirements.txt \

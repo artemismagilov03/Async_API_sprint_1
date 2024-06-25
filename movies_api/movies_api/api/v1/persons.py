@@ -3,9 +3,9 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 
-from src.api.v1.schemas import Person
-from src.api.v1.enums import PersonSortOption
-from src.services.person import PersonService, get_person_service
+from movies_api.api.v1.schemas import Person
+from movies_api.api.v1.enums import PersonSortOption
+from movies_api.services.person import PersonService, get_person_service
 
 
 router = APIRouter(prefix='/api/v1/persons', tags=['persons'])

@@ -6,11 +6,11 @@ from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from src.api.v1.enums import FilmSortOption
-from src.api.v1.models import Film
-from src.db.elastic import get_elastic
-from src.db.redis import get_redis
-from src.core import config
+from movies_api.api.v1.enums import FilmSortOption
+from movies_api.api.v1.models import Film
+from movies_api.db.elastic import get_elastic
+from movies_api.db.redis import get_redis
+from movies_api.core import config
 
 
 class FilmService:

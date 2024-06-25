@@ -3,10 +3,10 @@ from fastapi.responses import ORJSONResponse
 from redis import Redis
 from elasticsearch import AsyncElasticsearch
 
-from src.api.v1 import films, genres, persons
-from src.core import config
-from src.db import elastic
-from src.db import redis
+from movies_api.api.v1 import films, genres, persons
+from movies_api.core import config
+from movies_api.db import elastic
+from movies_api.db import redis
 
 
 app = FastAPI(

@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 from uuid import UUID
 
-from src.models.genre import Genre
-from src.models.person import BasePerson
+from movies_api.models.genre import Genre
+from movies_api.models.person import BasePerson
 
 
 class Film(BaseModel):

@@ -3,9 +3,9 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 
-from src.api.v1.schemas import Film
-from src.api.v1.enums import FilmSortOption
-from src.services.film import FilmService, get_film_service
+from movies_api.api.v1.schemas import Film
+from movies_api.api.v1.enums import FilmSortOption
+from movies_api.services.film import FilmService, get_film_service
 
 
 router = APIRouter(prefix='/api/v1/films', tags=['films'])

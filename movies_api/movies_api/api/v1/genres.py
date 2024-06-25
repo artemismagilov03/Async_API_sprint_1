@@ -3,9 +3,9 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 
-from src.api.v1.schemas import Genre
-from src.api.v1.enums import GenreSortOption
-from src.services.genre import GenreService, get_genre_service
+from movies_api.api.v1.schemas import Genre
+from movies_api.api.v1.enums import GenreSortOption
+from movies_api.services.genre import GenreService, get_genre_service
 
 
 router = APIRouter(prefix='/api/v1/genres', tags=['genres'])
