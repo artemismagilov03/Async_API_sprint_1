@@ -31,10 +31,13 @@ class PersonService:
         sort: PersonSortOption,
         page_size: int,
         page_number: int,
+        actor: str,
+        writer: str,
+        director: str,
     ) -> list[Person]:
         persons = None  # await self._persons_from_cache(sort, page_size, page_number)
         if not persons:
-            persons = await self._get_persons_from_elastic(sort, page_size, page_number)
+            persons = await self._get_persons_from_elastic(sort, page_size, page_number, actor, writer, director)
             if not persons:
                 return None
             # await self._put_person_to_cache(films)
@@ -47,7 +50,6 @@ class PersonService:
         sort: PersonSortOption,
         page_size: int,
         page_number: int,
-        genre: str,
         actor: str,
         writer: str,
         director: str,
@@ -59,7 +61,6 @@ class PersonService:
                 sort,
                 page_size,
                 page_number,
-                genre,
                 actor,
                 writer,
                 director,
@@ -82,8 +83,20 @@ class PersonService:
         sort: PersonSortOption,
         page_size: int,
         page_number: int,
+        actor: str,
+        writer: str,
+        director: str,
     ) -> list[Person]:
-        query = {'match_all': {}}
+        filters = []
+
+        if actor:
+            filters.append({'match': {'films.roles': actor}})
+        if writer:
+            filters.append({'match': {'films.roles': writer}})
+        if director:
+            filters.append({'match': {'films.roles': director}})
+
+        query = {'bool': {'must': filters}} if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
         sort = [{row: {'order': order}}]
 
@@ -103,21 +116,18 @@ class PersonService:
         sort: PersonSortOption,
         page_size: int,
         page_number: int,
-        genre: str,
         actor: str,
         writer: str,
         director: str,
     ) -> list[Person]:
         filters = [{'match': {'full_name': query}}] if query else []
 
-        if genre:
-            filters.append({'match': {'genres': genre}})
         if actor:
-            filters.append({'match': {'actors.name': actor}})
+            filters.append({'match': {'films.roles': actor}})
         if writer:
-            filters.append({'match': {'writers.name': writer}})
+            filters.append({'match': {'films.roles': writer}})
         if director:
-            filters.append({'match': {'directors.name': director}})
+            filters.append({'match': {'films.roles': director}})
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
