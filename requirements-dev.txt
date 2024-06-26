@@ -1,1 +1,3 @@
+-r movies_api/requirements.txt
+-r etl/etl/requirements.txt
 ruff==0.4.10
