@@ -1,5 +1,4 @@
 line-length = 120
-extend-exclude = ["etl"]
 
 [format]
 quote-style = "single"
