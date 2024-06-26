@@ -15,7 +15,7 @@ async def person_details(
     uuid: UUID,
     person_service: PersonService = Depends(get_person_service),
 ) -> Person:
-    """Page with single person"""
+    """Single person by uuid"""
     person = await person_service.get_by_id(uuid)
     if not person:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='person not found')
@@ -32,7 +32,7 @@ async def list_persons(
     director: Annotated[str, Query(max_length=255, title='Director name')] = '',
     person_service: PersonService = Depends(get_person_service),
 ) -> list[Person]:
-    """Main page with list of persons"""
+    """List of persons"""
     persons = await person_service.get_by_list(sort, page_size, page_number, actor, writer, director)
     if not persons:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='persons not found')
@@ -50,7 +50,7 @@ async def search_persons(
     director: Annotated[str, Query(max_length=255, title='Director name')] = '',
     person_service: PersonService = Depends(get_person_service),
 ) -> list[Person]:
-    """Main page after search with list of persons"""
+    """List of persons with searching by full_name"""
     persons = await person_service.search_by_full_name(query, sort, page_size, page_number, actor, writer, director)
     if not persons:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='persons not found')

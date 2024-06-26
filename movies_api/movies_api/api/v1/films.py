@@ -15,7 +15,7 @@ async def film_details(
     uuid: UUID,
     film_service: FilmService = Depends(get_film_service),
 ) -> Film:
-    """Page with single film"""
+    """Single film by uuid"""
     film = await film_service.get_by_id(uuid)
     if not film:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='film not found')
@@ -33,7 +33,7 @@ async def list_films(
     director: Annotated[str, Query(max_length=255, title='Director name')] = '',
     film_service: FilmService = Depends(get_film_service),
 ) -> list[Film]:
-    """Main page with list of films"""
+    """List of films"""
     films = await film_service.get_by_list(sort, page_size, page_number, genre, actor, writer, director)
     if not films:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
@@ -52,7 +52,7 @@ async def search_films(
     director: Annotated[str, Query(max_length=255, title='Director name')] = '',
     film_service: FilmService = Depends(get_film_service),
 ) -> list[Film]:
-    """Main page after search with list of films"""
+    """List of films with searching by title"""
     films = await film_service.search_by_title(query, sort, page_size, page_number, genre, actor, writer, director)
     if not films:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
@@ -67,7 +67,7 @@ async def person_films(
     page_number: Annotated[int, Query(ge=0, le=100)] = 0,
     film_service: FilmService = Depends(get_film_service),
 ) -> list[Film]:
-    """Main page with list of films by person"""
+    """List of films by person"""
     films = await film_service.get_films_by_person(uuid, sort, page_size, page_number)
     if not films:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
