@@ -111,11 +111,11 @@ class FilmService:
         if genre:
             filters.append({'match': {'genres': genre}})
         if actor:
-            filters.append({'match': {'actors.name': actor}})
+            filters.append({'match': {'actors_names': actor}})
         if writer:
-            filters.append({'match': {'writers.name': writer}})
+            filters.append({'match': {'writers_name': writer}})
         if director:
-            filters.append({'match': {'directors.name': director}})
+            filters.append({'match': {'directors_name': director}})
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
@@ -147,11 +147,11 @@ class FilmService:
         if genre:
             filters.append({'match': {'genres': genre}})
         if actor:
-            filters.append({'match': {'actors.name': actor}})
+            filters.append({'match': {'actors_name': actor}})
         if writer:
-            filters.append({'match': {'writers.name': writer}})
+            filters.append({'match': {'writers_name': writer}})
         if director:
-            filters.append({'match': {'directors.name': director}})
+            filters.append({'match': {'directors_name': director}})
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
@@ -170,7 +170,12 @@ class FilmService:
     async def _get_films_by_person_from_elastic(
         self, uuid: UUID, sort: FilmSortOption, page_size: int, page_number: int
     ):
-        query = {'bool': {'should': [{'actors.id': uuid}, {'directors.id': uuid}, {'writers.id': uuid}]}}
+        filters = [
+            {'nested': {'path': r, 'query': {'bool': {'must': {'match': [{f'{r}.id': uuid}]}}}}}
+            for r in ('actors', 'writers', 'directors')
+        ]
+
+        query = {'bool': {'should': filters}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
         sort = [{row: {'order': order}}]
 
