@@ -87,14 +87,11 @@ class PersonService:
         writer: str,
         director: str,
     ) -> list[Person]:
-        filters = []
-
-        if actor:
-            filters.append({'match': {'films.roles': actor}})
-        if writer:
-            filters.append({'match': {'films.roles': writer}})
-        if director:
-            filters.append({'match': {'films.roles': director}})
+        filters = [
+            {'nested': {'path': 'films', 'query': {'bool': {'must': {'match': [{'roles': r}]}}}}}
+            for r in (actor, writer, director)
+            if r
+        ]
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
@@ -120,14 +117,11 @@ class PersonService:
         writer: str,
         director: str,
     ) -> list[Person]:
-        filters = [{'match': {'full_name': query}}] if query else []
-
-        if actor:
-            filters.append({'match': {'films.roles': actor}})
-        if writer:
-            filters.append({'match': {'films.roles': writer}})
-        if director:
-            filters.append({'match': {'films.roles': director}})
+        filters = [
+            {'nested': {'path': 'films', 'query': {'bool': {'must': {'match': [{'roles': r}]}}}}}
+            for r in (actor, writer, director)
+            if r
+        ]
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
