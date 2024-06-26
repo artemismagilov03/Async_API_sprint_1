@@ -91,9 +91,9 @@ class GenreService:
         page_size: int,
         page_number: int,
     ) -> list[Genre]:
-        filters = [{'match': {'name': query}}] if query else []
+        filters = {'match': {'name': query}} if query else []
 
-        query = {'bool': {'must': filters}} if filters else {'match_all': {}}
+        query = filters if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
         sort = [{row: {'order': order}}]
 
