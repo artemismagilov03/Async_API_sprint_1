@@ -117,7 +117,7 @@ class PersonService:
         writer: str,
         director: str,
     ) -> list[Person]:
-        filters = [{"match": {"full_name": query}}]
+        filters = [{'match': {'full_name': query}}]
         filters.extend(
             {'nested': {'path': 'films', 'query': {'bool': {'must': {'match': [{'roles': r}]}}}}}
             for r in (actor, writer, director)
