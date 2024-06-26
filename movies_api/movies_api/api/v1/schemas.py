@@ -15,9 +15,9 @@ class Genre:
 class Person:
     uuid: UUID
     full_name: str
-    films: list['PersonFilmRoles']
+    films: list['FilmRoles']
 
 
-class PersonFilmRoles:
+class FilmRoles:
     uuid: UUID
     roles: list[str]

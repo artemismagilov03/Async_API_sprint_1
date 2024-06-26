@@ -3,15 +3,12 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-class BasePerson(BaseModel):
+class Person:
     id: UUID
     full_name: str
+    films: list['FilmRoles'] | None
 
 
-class PersonFilmRoles(BaseModel):
+class FilmRoles(BaseModel):
     id: UUID
     roles: list[str] | None
-
-
-class Person(BasePerson):
-    films: list[PersonFilmRoles] | None
