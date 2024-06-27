@@ -5,6 +5,7 @@ from uuid import UUID
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
+from fastapi.encoders import jsonable_encoder
 from redis.asyncio import Redis
 
 from movies_api.api.v1.enums import GenreSortOption
@@ -119,7 +120,7 @@ class GenreService:
 
     async def _put_genres_to_cache(self, genres: list[Genre], *args):
         key = 'genres:' + ','.join(f'{arg}' for arg in args)
-        value = json.dumps([g.dict() for g in genres])
+        value = json.dumps([jsonable_encoder(g) for g in genres])
         await self.redis.set(key, value)
 
 

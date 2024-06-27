@@ -1,7 +1,7 @@
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-from redis import Redis
+from redis.asyncio import Redis
 
 from movies_api.api.v1 import films, genres, persons
 from movies_api.core import config

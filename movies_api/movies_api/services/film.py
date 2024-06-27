@@ -5,6 +5,7 @@ from uuid import UUID
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
+from fastapi.encoders import jsonable_encoder
 from redis.asyncio import Redis
 
 from movies_api.api.v1.enums import FilmSortOption
@@ -198,7 +199,7 @@ class FilmService:
 
     async def _put_films_to_cache(self, films: list[Film], *args):
         key = 'movies:' + ','.join(f'{arg}' for arg in args)
-        value = json.dumps([f.dict() for f in films])
+        value = json.dumps([jsonable_encoder(f) for f in films])
         await self.redis.set(key, value, config.FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
