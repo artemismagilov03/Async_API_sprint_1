@@ -29,8 +29,7 @@ async def list_genres(
     genre_service: GenreService = Depends(get_genre_service),
 ) -> list[Genre]:
     """List of genres"""
-    genres = await genre_service.get_by_list(sort, page_size, page_number)
-    if not genres:
+    if not (genres := await genre_service.get_by_list(sort, page_size, page_number)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
     return [Genre(uuid=genre.id, name=genre.name) for genre in genres]
 
@@ -44,7 +43,6 @@ async def search_genres(
     genre_service: GenreService = Depends(get_genre_service),
 ) -> list[Genre]:
     """list of genres with searching by name"""
-    genres = await genre_service.search_by_name(query, sort, page_size, page_number)
-    if not genres:
+    if not (genres := await genre_service.search_by_name(query, sort, page_size, page_number)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
     return [Genre(uuid=genre.id, name=genre.name) for genre in genres]

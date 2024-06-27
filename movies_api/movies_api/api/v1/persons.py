@@ -16,8 +16,7 @@ async def person_details(
     person_service: PersonService = Depends(get_person_service),
 ) -> Person:
     """Single person by uuid"""
-    person = await person_service.get_by_id(uuid)
-    if not person:
+    if not (person := await person_service.get_by_id(uuid)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='person not found')
     return Person(uuid=person.id, full_name=person.full_name)
 
@@ -33,8 +32,7 @@ async def list_persons(
     person_service: PersonService = Depends(get_person_service),
 ) -> list[Person]:
     """List of persons"""
-    persons = await person_service.get_by_list(sort, page_size, page_number, actor, writer, director)
-    if not persons:
+    if not (persons := await person_service.get_by_list(sort, page_size, page_number, actor, writer, director)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='persons not found')
     return [Person(uuid=person.id, full_name=person.full_name) for person in persons]
 

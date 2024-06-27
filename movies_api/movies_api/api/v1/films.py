@@ -16,8 +16,7 @@ async def film_details(
     film_service: FilmService = Depends(get_film_service),
 ) -> Film:
     """Single film by uuid"""
-    film = await film_service.get_by_id(uuid)
-    if not film:
+    if not (film := await film_service.get_by_id(uuid)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='film not found')
     return Film(uuid=film.id, title=film.title, imdb_rating=film.rating)
 
@@ -34,8 +33,7 @@ async def list_films(
     film_service: FilmService = Depends(get_film_service),
 ) -> list[Film]:
     """List of films"""
-    films = await film_service.get_by_list(sort, page_size, page_number, genre, actor, writer, director)
-    if not films:
+    if not (films := await film_service.get_by_list(sort, page_size, page_number, genre, actor, writer, director)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
     return [Film(uuid=film.id, title=film.title, imdb_rating=film.rating) for film in films]
 
@@ -53,8 +51,9 @@ async def search_films(
     film_service: FilmService = Depends(get_film_service),
 ) -> list[Film]:
     """List of films with searching by title"""
-    films = await film_service.search_by_title(query, sort, page_size, page_number, genre, actor, writer, director)
-    if not films:
+    if not (
+        films := await film_service.search_by_title(query, sort, page_size, page_number, genre, actor, writer, director)
+    ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
     return [Film(uuid=film.id, title=film.title, imdb_rating=film.rating) for film in films]
 
@@ -68,7 +67,6 @@ async def person_films(
     film_service: FilmService = Depends(get_film_service),
 ) -> list[Film]:
     """List of films by person"""
-    films = await film_service.get_films_by_person(uuid, sort, page_size, page_number)
-    if not films:
+    if not (films := await film_service.get_films_by_person(uuid, sort, page_size, page_number)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
     return [Film(uuid=film.id, title=film.title, imdb_rating=film.imdb_rating) for film in films]
