@@ -10,17 +10,6 @@ from movies_api.services.genre import GenreService, get_genre_service
 router = APIRouter(prefix='/api/v1/genres', tags=['genres'])
 
 
-@router.get('/{uuid}', response_model=Genre)
-async def genre_details(
-    uuid: UUID,
-    genre_service: GenreService = Depends(get_genre_service),
-) -> Genre:
-    """Single genre by uuid"""
-    if not (genre := await genre_service.get_by_id(uuid)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='genre not found')
-    return Genre(uuid=genre.id, name=genre.name)
-
-
 @router.get('/', response_model=list[Genre])
 async def list_genres(
     sort: GenreSortOption = GenreSortOption.id,
@@ -44,5 +33,16 @@ async def search_genres(
 ) -> list[Genre]:
     """list of genres with searching by name"""
     if not (genres := await genre_service.search_by_name(query, sort, page_size, page_number)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='genres not found')
     return [Genre(uuid=genre.id, name=genre.name) for genre in genres]
+
+
+@router.get('/{uuid}', response_model=Genre)
+async def genre_details(
+    uuid: UUID,
+    genre_service: GenreService = Depends(get_genre_service),
+) -> Genre:
+    """Single genre by uuid"""
+    if not (genre := await genre_service.get_by_id(uuid)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='genre not found')
+    return Genre(uuid=genre.id, name=genre.name)

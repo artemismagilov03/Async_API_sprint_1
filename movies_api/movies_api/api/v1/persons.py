@@ -10,17 +10,6 @@ from movies_api.services.person import PersonService, get_person_service
 router = APIRouter(prefix='/api/v1/persons', tags=['persons'])
 
 
-@router.get('/{uuid}', response_model=Person)
-async def person_details(
-    uuid: UUID,
-    person_service: PersonService = Depends(get_person_service),
-) -> Person:
-    """Single person by uuid"""
-    if not (person := await person_service.get_by_id(uuid)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='person not found')
-    return Person(uuid=person.id, full_name=person.full_name)
-
-
 @router.get('/', response_model=list[Person])
 async def list_persons(
     sort: PersonSortOption = PersonSortOption.id,
@@ -53,3 +42,14 @@ async def search_persons(
     if not persons:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='persons not found')
     return [Person(uuid=person.id, full_name=person.full_name) for person in persons]
+
+
+@router.get('/{uuid}', response_model=Person)
+async def person_details(
+    uuid: UUID,
+    person_service: PersonService = Depends(get_person_service),
+) -> Person:
+    """Single person by uuid"""
+    if not (person := await person_service.get_by_id(uuid)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='person not found')
+    return Person(uuid=person.id, full_name=person.full_name)

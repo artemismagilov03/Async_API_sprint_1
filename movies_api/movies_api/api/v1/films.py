@@ -10,17 +10,6 @@ from movies_api.services.film import FilmService, get_film_service
 router = APIRouter(prefix='/api/v1/films', tags=['films'])
 
 
-@router.get('/{uuid}', response_model=Film)
-async def film_details(
-    uuid: UUID,
-    film_service: FilmService = Depends(get_film_service),
-) -> Film:
-    """Single film by uuid"""
-    if not (film := await film_service.get_by_id(uuid)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='film not found')
-    return Film(uuid=film.id, title=film.title, imdb_rating=film.rating)
-
-
 @router.get('/', response_model=list[Film])
 async def list_films(
     sort: FilmSortOption = FilmSortOption.id,
@@ -70,3 +59,14 @@ async def person_films(
     if not (films := await film_service.get_films_by_person(uuid, sort, page_size, page_number)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
     return [Film(uuid=film.id, title=film.title, imdb_rating=film.imdb_rating) for film in films]
+
+
+@router.get('/{uuid}', response_model=Film)
+async def film_details(
+    uuid: UUID,
+    film_service: FilmService = Depends(get_film_service),
+) -> Film:
+    """Single film by uuid"""
+    if not (film := await film_service.get_by_id(uuid)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='film not found')
+    return Film(uuid=film.id, title=film.title, imdb_rating=film.rating)

@@ -108,9 +108,9 @@ class GenreService:
 
     async def _genres_from_cache(self, *args) -> list[Genre]:
         key = 'genres:' + ','.join(f'{arg}' for arg in args)
-        data = await self.redis.get(key)
-        if not data:
+        if not (data := await self.redis.get(key)):
             return None
+        print(data)
         genres = [Genre(**g) for g in json.loads(data)]
         return genres
 
