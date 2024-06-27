@@ -3,6 +3,21 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
+class Actor(BaseModel):
+    id: UUID
+    full_name: str
+
+
+class Director(BaseModel):
+    id: UUID
+    full_name: str
+
+
+class Writer(BaseModel):
+    id: UUID
+    full_name: str
+
+
 class Person:
     id: UUID
     full_name: str
