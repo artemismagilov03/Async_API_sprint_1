@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 from typing import Optional
 from uuid import UUID
@@ -26,18 +27,11 @@ class GenreService:
 
         return genre
 
-    async def get_by_list(
-        self,
-        sort: GenreSortOption,
-        page_size: int,
-        page_number: int,
-    ) -> list[Genre]:
-        genres = None  # await self._genres_from_cache(sort, page_size, page_number)
-        if not genres:
-            genres = await self._get_genres_from_elastic(sort, page_size, page_number)
-            if not genres:
+    async def get_by_list(self, sort: GenreSortOption, page_size: int, page_number: int) -> list[Genre]:
+        if not (genres := await self._genres_from_cache(sort, page_size, page_number)):
+            if not (genres := await self._get_genres_from_elastic(sort, page_size, page_number)):
                 return None
-            # await self._put_genre_to_cache(films)
+            await self._put_genres_to_cache(genres, sort, page_size, page_number)
 
         return genres
 
@@ -48,18 +42,16 @@ class GenreService:
         page_size: int,
         page_number: int,
     ) -> list[Genre]:
-        genres = None  # await self._genres_from_cache(sort, page_size, page_number)
-        if not genres:
-            genres = await self._search_genres_from_elastic(query, sort, page_size, page_number)
-            if not genres:
+        if not (genres := await self._genres_from_cache(query, sort, page_size, page_number)):
+            if not (genres := await self._search_genres_from_elastic(query, sort, page_size, page_number)):
                 return None
-            # await self._put_genre_to_cache(films)
+            await self._put_genres_to_cache(genres)
 
         return genres
 
     async def _get_genre_from_elastic(self, uuid: UUID) -> Optional[Genre]:
         try:
-            doc = await self.elastic.get(index='genres', id=str(uuid))
+            doc = await self.elastic.get(index=config.GENRES_INDEX, id=f'{uuid}')
         except NotFoundError:
             return None
         return Genre(**doc['_source'])
@@ -81,7 +73,7 @@ class GenreService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index='genres', body=body)
+        docs = await self.elastic.search(index=config.GENRES_INDEX, body=body)
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _search_genres_from_elastic(
@@ -104,34 +96,31 @@ class GenreService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index='movies', body=body)
+        docs = await self.elastic.search(index=config.GENRES_INDEX, body=body)
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _genre_from_cache(self, uuid: UUID) -> Optional[Genre]:
-        if not (data := await self.redis.get(str(uuid))):
+        if not (data := await self.redis.get(f'{uuid}')):
             return None
 
         genre = Genre.model_validate_json(data)
         return genre
 
-    # async def _genres_from_cache(
-    #     self, sort: FilmRow, page_size: int, page_number: int
-    # ) -> Optional[Film]:
-    #     data = await self.redis.set()
-    #     if not data:
-    #         return None
-    #
-    #     film = Film.parse_raw(data)
-    #     return film
+    async def _genres_from_cache(self, *args) -> list[Genre]:
+        key = 'genres:' + ','.join(f'{arg}' for arg in args)
+        data = await self.redis.get(key)
+        if not data:
+            return None
+        genres = [Genre(**g) for g in json.loads(data)]
+        return genres
 
     async def _put_genre_to_cache(self, genre: Genre):
-        await self.redis.set(str(genre.id), genre.json(), config.GENRE_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(f'{genre.id}', genre.json(), config.GENRE_CACHE_EXPIRE_IN_SECONDS)
 
-    #
-    # async def _put_genres_to_cache(self, films: list[Film]):
-    #     await self.redis.set(
-    #         film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
-    #     )
+    async def _put_genres_to_cache(self, genres: list[Genre], *args):
+        key = 'genres:' + ','.join(f'{arg}' for arg in args)
+        value = json.dumps([g.dict() for g in genres])
+        await self.redis.set(key, value)
 
 
 @lru_cache
