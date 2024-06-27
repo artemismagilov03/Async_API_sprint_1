@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 from typing import Optional
 from uuid import UUID
@@ -36,12 +37,14 @@ class FilmService:
         writer: str,
         director: str,
     ) -> list[Film]:
-        films = None  # await self._films_from_cache(sort, page_size, page_number)
-        if not films:
-            films = await self._get_films_from_elastic(sort, page_size, page_number, genre, actor, writer, director)
-            if not films:
+        if not (films := await self._films_from_cache(sort, page_size, page_number, genre, actor, writer, director)):
+            if not (
+                films := await self._get_films_from_elastic(
+                    sort, page_size, page_number, genre, actor, writer, director
+                )
+            ):
                 return None
-            # await self._put_film_to_cache(films)
+            await self._put_films_to_cache(films, sort, page_size, page_number, genre, actor, writer, director)
 
         return films
 
@@ -195,27 +198,43 @@ class FilmService:
         film = Film.model_validate_json(data)
         return film
 
-    # async def _films_from_cache(
-    #     self, sort: FilmRow, page_size: int, page_number: int
-    # ) -> Optional[Film]:
-    #     data = await self.redis.set()
-    #     if not data:
-    #         return None
-    #
-    #     film = Film.parse_raw(data)
-    #     return film
+    async def _films_from_cache(
+        self,
+        sort: FilmSortOption,
+        page_size: int,
+        page_number: int,
+        genre: str,
+        actor: str,
+        writer: str,
+        director: str,
+    ) -> Optional[Film]:
+        key = f'movies:{sort},{page_size},{page_number},{genre},{actor},{writer},{director}'
+        data = await self.redis.get(key)
+        if not data:
+            return None
+        films = [Film(**f) for f in json.loads(data)]
+        return films
 
     async def _put_film_to_cache(self, film: Film):
         await self.redis.set(str(film.id), film.json(), config.FILM_CACHE_EXPIRE_IN_SECONDS)
 
-    #
-    # async def _put_films_to_cache(self, films: list[Film]):
-    #     await self.redis.set(
-    #         film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
-    #     )
+    async def _put_films_to_cache(
+        self,
+        films: list[Film],
+        sort: FilmSortOption,
+        page_size: int,
+        page_number: int,
+        genre: str,
+        actor: str,
+        writer: str,
+        director: str,
+    ):
+        key = f'movies:{sort},{page_size},{page_number},{genre},{actor},{writer},{director}'
+        value = json.dumps([f.dict() for f in films])
+        await self.redis.set(key, value, config.FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
-@lru_cache()
+@lru_cache
 def get_film_service(
     redis: Redis = Depends(get_redis),
     elastic: AsyncElasticsearch = Depends(get_elastic),

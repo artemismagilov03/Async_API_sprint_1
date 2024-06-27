@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -x
+
 curl -X PUT http://127.0.0.1:9200/persons -H 'Content-Type: application/json' -d '
 {
   "mappings": {

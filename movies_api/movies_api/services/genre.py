@@ -134,7 +134,7 @@ class GenreService:
     #     )
 
 
-@lru_cache()
+@lru_cache
 def get_genre_service(
     redis: Redis = Depends(get_redis),
     elastic: AsyncElasticsearch = Depends(get_elastic),

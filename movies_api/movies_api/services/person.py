@@ -156,11 +156,7 @@ class PersonService:
     #     return film
 
     async def _put_person_to_cache(self, person: Person):
-        await self.redis.set(
-            str(person.id),
-            person.json(),
-            config.PERSON_CACHE_EXPIRE_IN_SECONDS,
-        )
+        await self.redis.set(str(person.id), person.json(), config.PERSON_CACHE_EXPIRE_IN_SECONDS)
 
     #
     # async def _put_persons_to_cache(self, films: list[Film]):
@@ -169,9 +165,8 @@ class PersonService:
     #     )
 
 
-@lru_cache()
+@lru_cache
 def get_person_service(
-    redis: Redis = Depends(get_redis),
-    elastic: AsyncElasticsearch = Depends(get_elastic),
+    redis: Redis = Depends(get_redis), elastic: AsyncElasticsearch = Depends(get_elastic)
 ) -> PersonService:
     return PersonService(redis, elastic)
