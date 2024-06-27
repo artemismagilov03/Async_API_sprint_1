@@ -29,6 +29,8 @@ services:
       - "./movies_api/:/code/"
     ports:
       - "8000:8000"
+    env_file:
+      - ".env"
 
   etl-app:
     image: "python:alpine"
@@ -40,5 +42,5 @@ services:
       pip install -r requirements.txt \
       && python etl_pipelines.py
       "
-    environment:
-      - "PYTHONUNBUFFERED=1"
+    env_file:
+      - ".env"
