@@ -1,4 +1,4 @@
-import json
+import orjson
 from functools import lru_cache
 from typing import Optional
 from uuid import UUID
@@ -137,26 +137,28 @@ class PersonService:
         return [Person(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _person_from_cache(self, uuid: UUID) -> Optional[Person]:
-        if not (data := await self.redis.get(str(uuid))):
+        key = f'{config.PERSONS_INDEX}:{uuid}'
+        if not (data := await self.redis.get(key)):
             return None
 
         person = Person.model_validate_json(data)
         return person
 
     async def _persons_from_cache(self, *args) -> list[Person]:
-        key = 'persons:' + ','.join(f'{arg}' for arg in args)
+        key = f'{config.PERSONS_INDEX}:' + ','.join(f'{arg}' for arg in args)
         if not (data := await self.redis.get(key)):
             return None
-        persons = [Person(**g) for g in json.loads(data)]
+        persons = [Person(**g) for g in orjson.loads(data)]
         return persons
 
     async def _put_person_to_cache(self, person: Person):
-        await self.redis.set(f'{person.id}', person.json(), config.PERSON_CACHE_EXPIRE_IN_SECONDS)
+        key = f'{config.PERSONS_INDEX}:{person.id}'
+        await self.redis.set(key, person.json(), config.PERSON_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_persons_to_cache(self, persons: list[Person], *args):
-        key = 'persons:' + ','.join(f'{arg}' for arg in args)
-        value = json.dumps([jsonable_encoder(p) for p in persons])
-        await self.redis.set(key, value)
+        key = f'{config.PERSONS_INDEX}:' + ','.join(f'{arg}' for arg in args)
+        value = orjson.dumps([p for p in persons])
+        await self.redis.set(key, value, config.PERSON_CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache

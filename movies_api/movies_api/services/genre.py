@@ -1,4 +1,4 @@
-import json
+import orjson
 from functools import lru_cache
 from typing import Optional
 from uuid import UUID
@@ -101,26 +101,28 @@ class GenreService:
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _genre_from_cache(self, uuid: UUID) -> Optional[Genre]:
-        if not (data := await self.redis.get(f'{uuid}')):
+        key = f'{config.GENRES_INDEX}:{uuid}'
+        if not (data := await self.redis.get(key)):
             return None
 
         genre = Genre.model_validate_json(data)
         return genre
 
     async def _genres_from_cache(self, *args) -> list[Genre]:
-        key = 'genres:' + ','.join(f'{arg}' for arg in args)
+        key = f'{config.GENRES_INDEX}:' + ','.join(f'{arg}' for arg in args)
         if not (data := await self.redis.get(key)):
             return None
-        genres = [Genre(**g) for g in json.loads(data)]
+        genres = [Genre(**g) for g in orjson.loads(data)]
         return genres
 
     async def _put_genre_to_cache(self, genre: Genre):
-        await self.redis.set(f'{genre.id}', genre.json(), config.GENRE_CACHE_EXPIRE_IN_SECONDS)
+        key = f'{config.GENRES_INDEX}:{genre.id}'
+        await self.redis.set(key, genre.json(), config.GENRE_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_genres_to_cache(self, genres: list[Genre], *args):
-        key = 'genres:' + ','.join(f'{arg}' for arg in args)
-        value = json.dumps([jsonable_encoder(g) for g in genres])
-        await self.redis.set(key, value)
+        key = f'{config.GENRES_INDEX}:' + ','.join(f'{arg}' for arg in args)
+        value = orjson.dumps([g for g in genres])
+        await self.redis.set(key, value, config.GENRES_INDEX)
 
 
 @lru_cache

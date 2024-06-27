@@ -1,4 +1,4 @@
-import json
+import orjson
 from functools import lru_cache
 from typing import Optional
 from uuid import UUID
@@ -181,25 +181,27 @@ class FilmService:
         return [Film(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _film_from_cache(self, uuid: UUID) -> Optional[Film]:
-        if data := await self.redis.get(f'{uuid}'):
+        key = f'{config.MOVIES_INDEX}:{uuid}'
+        if data := await self.redis.get(key):
             return None
         film = Film.model_validate_json(data)
         return film
 
     async def _films_from_cache(self, *args) -> Optional[Film]:
-        key = 'movies:' + ','.join(f'{arg}' for arg in args)
+        key = f'{config.MOVIES_INDEX}:' + ','.join(f'{arg}' for arg in args)
         data = await self.redis.get(key)
         if not data:
             return None
-        films = [Film(**f) for f in json.loads(data)]
+        films = [Film(**f) for f in orjson.loads(data)]
         return films
 
     async def _put_film_to_cache(self, film: Film):
-        await self.redis.set(f'{film.id}', film.json(), config.FILM_CACHE_EXPIRE_IN_SECONDS)
+        key = f'{config.MOVIES_INDEX}:{film.id}'
+        await self.redis.set(key, film.json(), config.FILM_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_films_to_cache(self, films: list[Film], *args):
-        key = 'movies:' + ','.join(f'{arg}' for arg in args)
-        value = json.dumps([jsonable_encoder(f) for f in films])
+        key = f'{config.MOVIES_INDEX}:' + ','.join(f'{arg}' for arg in args)
+        value = orjson.dumps([f for f in films])
         await self.redis.set(key, value, config.FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
