@@ -3,7 +3,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from movies_api.models.genre import Genre
-from movies_api.models.person import Director, Actor, Writer
+from movies_api.models.person import Actor, Director, Writer
 
 
 class Film(BaseModel):
