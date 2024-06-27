@@ -198,17 +198,8 @@ class FilmService:
         film = Film.model_validate_json(data)
         return film
 
-    async def _films_from_cache(
-        self,
-        sort: FilmSortOption,
-        page_size: int,
-        page_number: int,
-        genre: str,
-        actor: str,
-        writer: str,
-        director: str,
-    ) -> Optional[Film]:
-        key = f'movies:{sort},{page_size},{page_number},{genre},{actor},{writer},{director}'
+    async def _films_from_cache(self, *args) -> Optional[Film]:
+        key = f'movies:' + ','.join(f'{arg}' for arg in args)
         data = await self.redis.get(key)
         if not data:
             return None
@@ -218,18 +209,8 @@ class FilmService:
     async def _put_film_to_cache(self, film: Film):
         await self.redis.set(str(film.id), film.json(), config.FILM_CACHE_EXPIRE_IN_SECONDS)
 
-    async def _put_films_to_cache(
-        self,
-        films: list[Film],
-        sort: FilmSortOption,
-        page_size: int,
-        page_number: int,
-        genre: str,
-        actor: str,
-        writer: str,
-        director: str,
-    ):
-        key = f'movies:{sort},{page_size},{page_number},{genre},{actor},{writer},{director}'
+    async def _put_films_to_cache(self, films: list[Film], *args):
+        key = f'movies:' + ','.join(f'{arg}' for arg in args)
         value = json.dumps([f.dict() for f in films])
         await self.redis.set(key, value, config.FILM_CACHE_EXPIRE_IN_SECONDS)
 
