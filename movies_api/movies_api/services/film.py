@@ -59,42 +59,30 @@ class FilmService:
         writer: str,
         director: str,
     ) -> list[Film]:
-        films = None  # await self._films_from_cache(sort, page_size, page_number)
-        if not films:
-            films = await self._search_films_from_elastic(
-                query,
-                sort,
-                page_size,
-                page_number,
-                genre,
-                actor,
-                writer,
-                director,
-            )
-            if not films:
+        if not (
+            films := await self._films_from_cache(query, sort, page_size, page_number, genre, actor, writer, director)
+        ):
+            if not (
+                films := await self._search_films_from_elastic(
+                    query, sort, page_size, page_number, genre, actor, writer, director
+                )
+            ):
                 return None
-            # await self._put_film_to_cache(films)
+            await self._put_films_to_cache(films, query, sort, page_size, page_number, genre, actor, writer, director)
 
         return films
 
     async def get_films_by_person(self, uuid: UUID, sort, page_size: int, page_number: int):
-        films = None  # await self._films_from_cache(sort, page_size, page_number)
-        if not films:
-            films = await self._get_films_by_person_from_elastic(
-                uuid,
-                sort,
-                page_size,
-                page_number,
-            )
-            if not films:
+        if not (films := await self._films_from_cache(uuid, sort, page_size, page_number)):
+            if not (films := await self._get_films_by_person_from_elastic(uuid, sort, page_size, page_number)):
                 return None
-            # await self._put_film_to_cache(films)
+            await self._put_films_to_cache(films, uuid, sort, page_size, page_number)
 
         return films
 
     async def _get_film_from_elastic(self, uuid: UUID) -> Optional[Film]:
         try:
-            doc = await self.elastic.get(index='movies', id=str(uuid))
+            doc = await self.elastic.get(index=config.MOVIES_INDEX, id=f'{uuid}')
         except NotFoundError:
             return None
         return Film(**doc['_source'])
@@ -131,7 +119,7 @@ class FilmService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index='movies', body=body)
+        docs = await self.elastic.search(index=config.MOVIES_INDEX, body=body)
         return [Film(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _search_films_from_elastic(
@@ -167,15 +155,14 @@ class FilmService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index='movies', body=body)
+        docs = await self.elastic.search(index=config.MOVIES_INDEX, body=body)
         return [Film(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _get_films_by_person_from_elastic(
         self, uuid: UUID, sort: FilmSortOption, page_size: int, page_number: int
     ):
         filters = [
-            {'nested': {'path': r, 'query': {'bool': {'must': {'match': [{f'{r}.id': uuid}]}}}}}
-            for r in ('actors', 'writers', 'directors')
+            {'nested': {'path': r, 'query': {'match': {f'{r}.id': uuid}}}} for r in ('actors', 'writers', 'directors')
         ]
 
         query = {'bool': {'should': filters}}
@@ -189,17 +176,17 @@ class FilmService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index='movies', body=body)
+        docs = await self.elastic.search(index=config.MOVIES_INDEX, body=body)
         return [Film(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _film_from_cache(self, uuid: UUID) -> Optional[Film]:
-        if data := await self.redis.get(str(uuid)):
+        if data := await self.redis.get(f'{uuid}'):
             return None
         film = Film.model_validate_json(data)
         return film
 
     async def _films_from_cache(self, *args) -> Optional[Film]:
-        key = f'movies:' + ','.join(f'{arg}' for arg in args)
+        key = 'movies:' + ','.join(f'{arg}' for arg in args)
         data = await self.redis.get(key)
         if not data:
             return None
@@ -207,10 +194,10 @@ class FilmService:
         return films
 
     async def _put_film_to_cache(self, film: Film):
-        await self.redis.set(str(film.id), film.json(), config.FILM_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(f'{film.id}', film.json(), config.FILM_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_films_to_cache(self, films: list[Film], *args):
-        key = f'movies:' + ','.join(f'{arg}' for arg in args)
+        key = 'movies:' + ','.join(f'{arg}' for arg in args)
         value = json.dumps([f.dict() for f in films])
         await self.redis.set(key, value, config.FILM_CACHE_EXPIRE_IN_SECONDS)
 
