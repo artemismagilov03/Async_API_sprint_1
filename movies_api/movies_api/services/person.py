@@ -1,9 +1,11 @@
+import json
 from functools import lru_cache
 from typing import Optional
 from uuid import UUID
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
+from fastapi.encoders import jsonable_encoder
 from redis.asyncio import Redis
 
 from movies_api.api.v1.enums import PersonSortOption
@@ -35,12 +37,12 @@ class PersonService:
         writer: str,
         director: str,
     ) -> list[Person]:
-        persons = None  # await self._persons_from_cache(sort, page_size, page_number)
-        if not persons:
-            persons = await self._get_persons_from_elastic(sort, page_size, page_number, actor, writer, director)
-            if not persons:
+        if not (persons := await self._persons_from_cache(sort, page_size, page_number, actor, writer, director)):
+            if not (
+                persons := await self._get_persons_from_elastic(sort, page_size, page_number, actor, writer, director)
+            ):
                 return None
-            # await self._put_person_to_cache(films)
+            await self._put_persons_to_cache(persons)
 
         return persons
 
@@ -54,26 +56,26 @@ class PersonService:
         writer: str,
         director: str,
     ):
-        persons = None  # await self._films_from_cache(sort, page_size, page_number)
-        if not persons:
-            persons = await self._search_persons_from_elastic(
-                query,
-                sort,
-                page_size,
-                page_number,
-                actor,
-                writer,
-                director,
-            )
-            if not persons:
+        if not (persons := await self._persons_from_cache(sort, page_size, page_number, actor, writer, director)):
+            if not (
+                persons := await self._search_persons_from_elastic(
+                    query,
+                    sort,
+                    page_size,
+                    page_number,
+                    actor,
+                    writer,
+                    director,
+                )
+            ):
                 return None
-            # await self._put_film_to_cache(films)
+            await self._put_persons_to_cache(persons)
 
         return persons
 
     async def _get_person_from_elastic(self, uuid: UUID) -> Optional[Person]:
         try:
-            doc = await self.elastic.get(index='persons', id=str(uuid))
+            doc = await self.elastic.get(index=config.PERSONS_INDEX, id=f'{uuid}')
         except NotFoundError:
             return None
         return Person(**doc['_source'])
@@ -88,9 +90,7 @@ class PersonService:
         director: str,
     ) -> list[Person]:
         filters = [
-            {'nested': {'path': 'films', 'query': {'bool': {'must': {'match': [{'roles': r}]}}}}}
-            for r in (actor, writer, director)
-            if r
+            {'nested': {'path': 'films', 'query': {'match': {'roles': r}}}} for r in (actor, writer, director) if r
         ]
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
@@ -104,7 +104,7 @@ class PersonService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index='persons', body=body)
+        docs = await self.elastic.search(index=config.PERSONS_INDEX, body=body)
         return [Person(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _search_persons_from_elastic(
@@ -133,7 +133,7 @@ class PersonService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index='persons', body=body)
+        docs = await self.elastic.search(index=config.PERSONS_INDEX, body=body)
         return [Person(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _person_from_cache(self, uuid: UUID) -> Optional[Person]:
@@ -143,24 +143,20 @@ class PersonService:
         person = Person.model_validate_json(data)
         return person
 
-    # async def _persons_from_cache(
-    #     self, sort: FilmRow, page_size: int, page_number: int
-    # ) -> Optional[Film]:
-    #     data = await self.redis.set()
-    #     if not data:
-    #         return None
-    #
-    #     film = Film.parse_raw(data)
-    #     return film
+    async def _persons_from_cache(self, *args) -> list[Person]:
+        key = 'persons:' + ','.join(f'{arg}' for arg in args)
+        if not (data := await self.redis.get(key)):
+            return None
+        persons = [Person(**g) for g in json.loads(data)]
+        return persons
 
     async def _put_person_to_cache(self, person: Person):
-        await self.redis.set(str(person.id), person.json(), config.PERSON_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(f'{person.id}', person.json(), config.PERSON_CACHE_EXPIRE_IN_SECONDS)
 
-    #
-    # async def _put_persons_to_cache(self, films: list[Film]):
-    #     await self.redis.set(
-    #         film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
-    #     )
+    async def _put_persons_to_cache(self, persons: list[Person], *args):
+        key = 'persons:' + ','.join(f'{arg}' for arg in args)
+        value = json.dumps([jsonable_encoder(p) for p in persons])
+        await self.redis.set(key, value)
 
 
 @lru_cache

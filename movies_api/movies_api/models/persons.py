@@ -18,7 +18,7 @@ class Writer(BaseModel):
     full_name: str
 
 
-class Person:
+class Person(BaseModel):
     id: UUID
     full_name: str
     films: list['FilmRoles'] | None

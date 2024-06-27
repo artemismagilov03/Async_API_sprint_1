@@ -111,7 +111,6 @@ class GenreService:
         key = 'genres:' + ','.join(f'{arg}' for arg in args)
         if not (data := await self.redis.get(key)):
             return None
-        print(data)
         genres = [Genre(**g) for g in json.loads(data)]
         return genres
 
