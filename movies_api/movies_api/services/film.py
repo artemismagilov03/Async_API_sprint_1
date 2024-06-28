@@ -1,11 +1,10 @@
-import orjson
 from functools import lru_cache
 from typing import Optional
 from uuid import UUID
 
+import orjson
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
-from fastapi.encoders import jsonable_encoder
 from redis.asyncio import Redis
 
 from movies_api.api.v1.enums import FilmSortOption
