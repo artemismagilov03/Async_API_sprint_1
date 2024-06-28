@@ -31,7 +31,7 @@ async def search_genres(
     page_number: Annotated[int, Query(ge=0, le=100)] = 0,
     genre_service: GenreService = Depends(get_genre_service),
 ) -> list[Genre]:
-    """list of genres with searching by name"""
+    """List of genres with searching by name"""
     if not (genres := await genre_service.search_by_name(query, sort, page_size, page_number)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='genres not found')
     return [Genre(uuid=genre.id, name=genre.name) for genre in genres]
