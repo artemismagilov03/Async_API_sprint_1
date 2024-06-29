@@ -1,24 +1,30 @@
+import logging
 import os
-from logging import config as logging_config
 
-from movies_api.core.logger import LOGGING
+from pydantic_settings import BaseSettings
 
-logging_config.dictConfig(LOGGING)
+from movies_api.core.logger import LOG_FORMAT, LOG_LEVEL
 
-PROJECT_NAME = os.getenv('PROJECT_NAME', 'movies')
 
-REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
-REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+class Settings(BaseSettings):
+    PROJECT_NAME: str = 'movies'
 
-ELASTIC_HOST = os.getenv('ELASTIC_HOST', '127.0.0.1')
-ELASTIC_PORT = int(os.getenv('ELASTIC_PORT', 9200))
+    REDIS_HOST: str = '127.0.0.1'
+    REDIS_PORT: int = 6379
 
-BASE_DIR = os.getcwd()
+    ELASTIC_HOST: str = '127.0.0.1'
+    ELASTIC_PORT: int = 9200
 
-FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
-GENRE_CACHE_EXPIRE_IN_SECONDS = 60 * 5
-PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5
+    BASE_DIR: str = os.getcwd()
 
-MOVIES_INDEX = 'movies'
-GENRES_INDEX = 'genres'
-PERSONS_INDEX = 'persons'
+    FILM_CACHE_EXPIRE_IN_SECONDS: int = 60 * 5
+    GENRE_CACHE_EXPIRE_IN_SECONDS: int = 60 * 5
+    PERSON_CACHE_EXPIRE_IN_SECONDS: int = 60 * 5
+
+    MOVIES_INDEX: str = 'movies'
+    GENRES_INDEX: str = 'genres'
+    PERSONS_INDEX: str = 'persons'
+
+
+logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)
+settings = Settings()

@@ -8,7 +8,7 @@ from fastapi import Depends
 from redis.asyncio import Redis
 
 from movies_api.api.v1.enums import FilmSortOption
-from movies_api.core import config
+from movies_api.core.config import settings
 from movies_api.db.elastic import get_elastic
 from movies_api.db.redis import get_redis
 from movies_api.models.film import Film
@@ -82,7 +82,7 @@ class FilmService:
 
     async def _get_film_from_elastic(self, uuid: UUID) -> Optional[Film]:
         try:
-            doc = await self.elastic.get(index=config.MOVIES_INDEX, id=f'{uuid}')
+            doc = await self.elastic.get(index=settings.MOVIES_INDEX, id=f'{uuid}')
         except NotFoundError:
             return None
         return Film(**doc['_source'])
@@ -119,7 +119,7 @@ class FilmService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index=config.MOVIES_INDEX, body=body)
+        docs = await self.elastic.search(index=settings.MOVIES_INDEX, body=body)
         return [Film(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _search_films_from_elastic(
@@ -155,7 +155,7 @@ class FilmService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index=config.MOVIES_INDEX, body=body)
+        docs = await self.elastic.search(index=settings.MOVIES_INDEX, body=body)
         return [Film(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _get_films_by_person_from_elastic(
@@ -176,18 +176,18 @@ class FilmService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index=config.MOVIES_INDEX, body=body)
+        docs = await self.elastic.search(index=settings.MOVIES_INDEX, body=body)
         return [Film(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _film_from_cache(self, uuid: UUID) -> Optional[Film]:
-        key = f'{config.MOVIES_INDEX}:{uuid}'
+        key = f'{settings.MOVIES_INDEX}:{uuid}'
         if data := await self.redis.get(key):
             return None
         film = Film.model_validate_json(data)
         return film
 
     async def _films_from_cache(self, *args) -> Optional[Film]:
-        key = f'{config.MOVIES_INDEX}:' + ','.join(f'{arg}' for arg in args)
+        key = f'{settings.MOVIES_INDEX}:' + ','.join(f'{arg}' for arg in args)
         data = await self.redis.get(key)
         if not data:
             return None
@@ -195,13 +195,13 @@ class FilmService:
         return films
 
     async def _put_film_to_cache(self, film: Film):
-        key = f'{config.MOVIES_INDEX}:{film.id}'
-        await self.redis.set(key, film.json(), config.FILM_CACHE_EXPIRE_IN_SECONDS)
+        key = f'{settings.MOVIES_INDEX}:{film.id}'
+        await self.redis.set(key, film.json(), settings.FILM_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_films_to_cache(self, films: list[Film], *args):
-        key = f'{config.MOVIES_INDEX}:' + ','.join(f'{arg}' for arg in args)
+        key = f'{settings.MOVIES_INDEX}:' + ','.join(f'{arg}' for arg in args)
         value = orjson.dumps([f for f in films])
-        await self.redis.set(key, value, config.FILM_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(key, value, settings.FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache

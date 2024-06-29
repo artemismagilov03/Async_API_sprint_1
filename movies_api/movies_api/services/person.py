@@ -8,7 +8,7 @@ from fastapi import Depends
 from redis.asyncio import Redis
 
 from movies_api.api.v1.enums import PersonSortOption
-from movies_api.core import config
+from movies_api.core.config import settings
 from movies_api.db.elastic import get_elastic
 from movies_api.db.redis import get_redis
 from movies_api.models.persons import Person
@@ -74,7 +74,7 @@ class PersonService:
 
     async def _get_person_from_elastic(self, uuid: UUID) -> Optional[Person]:
         try:
-            doc = await self.elastic.get(index=config.PERSONS_INDEX, id=f'{uuid}')
+            doc = await self.elastic.get(index=settings.PERSONS_INDEX, id=f'{uuid}')
         except NotFoundError:
             return None
         return Person(**doc['_source'])
@@ -103,7 +103,7 @@ class PersonService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index=config.PERSONS_INDEX, body=body)
+        docs = await self.elastic.search(index=settings.PERSONS_INDEX, body=body)
         return [Person(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _search_persons_from_elastic(
@@ -132,11 +132,11 @@ class PersonService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index=config.PERSONS_INDEX, body=body)
+        docs = await self.elastic.search(index=settings.PERSONS_INDEX, body=body)
         return [Person(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _person_from_cache(self, uuid: UUID) -> Optional[Person]:
-        key = f'{config.PERSONS_INDEX}:{uuid}'
+        key = f'{settings.PERSONS_INDEX}:{uuid}'
         if not (data := await self.redis.get(key)):
             return None
 
@@ -144,20 +144,20 @@ class PersonService:
         return person
 
     async def _persons_from_cache(self, *args) -> list[Person]:
-        key = f'{config.PERSONS_INDEX}:' + ','.join(f'{arg}' for arg in args)
+        key = f'{settings.PERSONS_INDEX}:' + ','.join(f'{arg}' for arg in args)
         if not (data := await self.redis.get(key)):
             return None
         persons = [Person(**g) for g in orjson.loads(data)]
         return persons
 
     async def _put_person_to_cache(self, person: Person):
-        key = f'{config.PERSONS_INDEX}:{person.id}'
-        await self.redis.set(key, person.json(), config.PERSON_CACHE_EXPIRE_IN_SECONDS)
+        key = f'{settings.PERSONS_INDEX}:{person.id}'
+        await self.redis.set(key, person.json(), settings.PERSON_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_persons_to_cache(self, persons: list[Person], *args):
-        key = f'{config.PERSONS_INDEX}:' + ','.join(f'{arg}' for arg in args)
+        key = f'{settings.PERSONS_INDEX}:' + ','.join(f'{arg}' for arg in args)
         value = orjson.dumps([p for p in persons])
-        await self.redis.set(key, value, config.PERSON_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(key, value, settings.PERSON_CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache

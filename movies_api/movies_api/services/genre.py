@@ -8,7 +8,7 @@ from fastapi import Depends
 from redis.asyncio import Redis
 
 from movies_api.api.v1.enums import GenreSortOption
-from movies_api.core import config
+from movies_api.core.config import settings
 from movies_api.db.elastic import get_elastic
 from movies_api.db.redis import get_redis
 from movies_api.models.genre import Genre
@@ -51,7 +51,7 @@ class GenreService:
 
     async def _get_genre_from_elastic(self, uuid: UUID) -> Optional[Genre]:
         try:
-            doc = await self.elastic.get(index=config.GENRES_INDEX, id=f'{uuid}')
+            doc = await self.elastic.get(index=settings.GENRES_INDEX, id=f'{uuid}')
         except NotFoundError:
             return None
         return Genre(**doc['_source'])
@@ -73,7 +73,7 @@ class GenreService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index=config.GENRES_INDEX, body=body)
+        docs = await self.elastic.search(index=settings.GENRES_INDEX, body=body)
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _search_genres_from_elastic(
@@ -96,11 +96,11 @@ class GenreService:
             'sort': sort,
         }
 
-        docs = await self.elastic.search(index=config.GENRES_INDEX, body=body)
+        docs = await self.elastic.search(index=settings.GENRES_INDEX, body=body)
         return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _genre_from_cache(self, uuid: UUID) -> Optional[Genre]:
-        key = f'{config.GENRES_INDEX}:{uuid}'
+        key = f'{settings.GENRES_INDEX}:{uuid}'
         if not (data := await self.redis.get(key)):
             return None
 
@@ -108,20 +108,20 @@ class GenreService:
         return genre
 
     async def _genres_from_cache(self, *args) -> list[Genre]:
-        key = f'{config.GENRES_INDEX}:' + ','.join(f'{arg}' for arg in args)
+        key = f'{settings.GENRES_INDEX}:' + ','.join(f'{arg}' for arg in args)
         if not (data := await self.redis.get(key)):
             return None
         genres = [Genre(**g) for g in orjson.loads(data)]
         return genres
 
     async def _put_genre_to_cache(self, genre: Genre):
-        key = f'{config.GENRES_INDEX}:{genre.id}'
-        await self.redis.set(key, genre.json(), config.GENRE_CACHE_EXPIRE_IN_SECONDS)
+        key = f'{settings.GENRES_INDEX}:{genre.id}'
+        await self.redis.set(key, genre.json(), settings.GENRE_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_genres_to_cache(self, genres: list[Genre], *args):
-        key = f'{config.GENRES_INDEX}:' + ','.join(f'{arg}' for arg in args)
+        key = f'{settings.GENRES_INDEX}:' + ','.join(f'{arg}' for arg in args)
         value = orjson.dumps([g for g in genres])
-        await self.redis.set(key, value, config.GENRES_INDEX)
+        await self.redis.set(key, value, settings.GENRES_INDEX)
 
 
 @lru_cache

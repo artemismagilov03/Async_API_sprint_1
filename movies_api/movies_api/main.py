@@ -4,19 +4,19 @@ from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
 
 from movies_api.api.v1 import films, genres, persons
-from movies_api.core import config
+from movies_api.core.config import settings
 from movies_api.db import elastic, redis
 
 app = FastAPI(
-    title=config.PROJECT_NAME,
+    title=settings.PROJECT_NAME,
     default_response_class=ORJSONResponse,
 )
 
 
 @app.on_event('startup')
 async def startup():
-    redis.rd = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT, decode_responses=True)
-    elastic.es = AsyncElasticsearch(f'http://{config.ELASTIC_HOST}:{config.ELASTIC_PORT}')
+    redis.rd = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, decode_responses=True)
+    elastic.es = AsyncElasticsearch(f'http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}')
 
 
 @app.on_event('shutdown')
