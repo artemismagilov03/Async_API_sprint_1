@@ -10,7 +10,12 @@ from movies_api.services.person import PersonService, get_person_service
 router = APIRouter(prefix='/api/v1/persons', tags=['persons'])
 
 
-@router.get('/', response_model=list[Person])
+@router.get(
+    '/',
+    response_model=list[Person],
+    summary='Get all persons',
+    description='Get all persons with filters, pagination and sorting',
+)
 async def list_persons(
     sort: PersonSortOption = PersonSortOption.id,
     page_size: Annotated[int, Query(ge=0, le=100)] = 10,
@@ -26,7 +31,12 @@ async def list_persons(
     return [Person(uuid=person.id, full_name=person.full_name) for person in persons]
 
 
-@router.get('/search', response_model=list[Person])
+@router.get(
+    '/search',
+    response_model=list[Person],
+    summary='Get all persons of search query',
+    description='Get all persons of search query with filters, pagination and sorting',
+)
 async def search_persons(
     query: Annotated[str, Query(max_length=255, title='Person full_name')] = '',
     sort: PersonSortOption = PersonSortOption.id,
@@ -44,7 +54,12 @@ async def search_persons(
     return [Person(uuid=person.id, full_name=person.full_name) for person in persons]
 
 
-@router.get('/{uuid}', response_model=Person)
+@router.get(
+    '/{uuid}',
+    response_model=Person,
+    summary='Get person',
+    description='Get person by uuid',
+)
 async def person_details(
     uuid: UUID,
     person_service: PersonService = Depends(get_person_service),

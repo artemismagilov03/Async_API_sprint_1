@@ -10,7 +10,12 @@ from movies_api.services.film import FilmService, get_film_service
 router = APIRouter(prefix='/api/v1/films', tags=['films'])
 
 
-@router.get('/', response_model=list[Film])
+@router.get(
+    '/',
+    response_model=list[Film],
+    summary='Get all films',
+    description='Get all films with filters, pagination and sorting',
+)
 async def list_films(
     sort: FilmSortOption = FilmSortOption.id,
     page_size: Annotated[int, Query(ge=0, le=100)] = 10,
@@ -27,7 +32,12 @@ async def list_films(
     return [Film(uuid=film.id, title=film.title, imdb_rating=film.rating) for film in films]
 
 
-@router.get('/search', response_model=list[Film])
+@router.get(
+    '/search',
+    response_model=list[Film],
+    summary='Get all films of search query',
+    description='Get all films of search query with filters, pagination and sorting',
+)
 async def search_films(
     query: Annotated[str, Query(max_length=255, title='Film title')] = '',
     sort: FilmSortOption = FilmSortOption.id,
@@ -47,7 +57,12 @@ async def search_films(
     return [Film(uuid=film.id, title=film.title, imdb_rating=film.rating) for film in films]
 
 
-@router.get('/{uuid}/film', response_model=list[Film])
+@router.get(
+    '/{uuid}/film',
+    response_model=list[Film],
+    summary='Get all films by person',
+    description='Get all films by uuid person with pagination and sorting',
+)
 async def person_films(
     uuid: UUID,
     sort: FilmSortOption = FilmSortOption.id,
@@ -61,7 +76,12 @@ async def person_films(
     return [Film(uuid=film.id, title=film.title, imdb_rating=film.imdb_rating) for film in films]
 
 
-@router.get('/{uuid}', response_model=Film)
+@router.get(
+    '/{uuid}',
+    response_model=Film,
+    summary='Get film',
+    description='Get film by uuid',
+)
 async def film_details(
     uuid: UUID,
     film_service: FilmService = Depends(get_film_service),

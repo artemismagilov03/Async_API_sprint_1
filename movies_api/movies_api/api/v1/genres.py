@@ -10,7 +10,12 @@ from movies_api.services.genre import GenreService, get_genre_service
 router = APIRouter(prefix='/api/v1/genres', tags=['genres'])
 
 
-@router.get('/', response_model=list[Genre])
+@router.get(
+    '/',
+    response_model=list[Genre],
+    summary='Get all genres',
+    description='Get all genres with filters, pagination and sorting',
+)
 async def list_genres(
     sort: GenreSortOption = GenreSortOption.id,
     page_size: Annotated[int, Query(ge=0, le=100)] = 10,
@@ -23,7 +28,12 @@ async def list_genres(
     return [Genre(uuid=genre.id, name=genre.name) for genre in genres]
 
 
-@router.get('/search', response_model=list[Genre])
+@router.get(
+    '/search',
+    response_model=list[Genre],
+    summary='Get all genres of search query',
+    description='Get all genres of search query with pagination and sorting',
+)
 async def search_genres(
     query: Annotated[str, Query(max_length=255, title='Genre name')] = '',
     sort: GenreSortOption = GenreSortOption.id,
@@ -37,7 +47,12 @@ async def search_genres(
     return [Genre(uuid=genre.id, name=genre.name) for genre in genres]
 
 
-@router.get('/{uuid}', response_model=Genre)
+@router.get(
+    '/{uuid}',
+    response_model=Genre,
+    summary='Get genre',
+    description='Get genre by uuid',
+)
 async def genre_details(
     uuid: UUID,
     genre_service: GenreService = Depends(get_genre_service),
