@@ -8,8 +8,8 @@ class FilmSortOption(StrEnum):
     title = 'title'
     neg_title = '-title'
 
-    imdb_rating = 'rating'
-    neg_imdb_rating = '-rating'
+    rating = 'rating'
+    neg_rating = '-rating'
 
 
 class GenreSortOption(StrEnum):
