@@ -73,7 +73,7 @@ async def person_films(
     """List of films by person"""
     if not (films := await film_service.get_films_by_person(uuid, sort, page_size, page_number)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='films not found')
-    return [Film(uuid=film.id, title=film.title, imdb_rating=film.imdb_rating) for film in films]
+    return [Film(uuid=film.id, title=film.title, imdb_rating=film.rating) for film in films]
 
 
 @router.get(

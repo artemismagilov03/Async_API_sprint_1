@@ -48,7 +48,7 @@ curl -X PUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d 
       "id": {
         "type": "keyword"
       },
-      "imdb_rating": {
+      "rating": {
         "type": "float"
       },
       "genres": {
@@ -86,7 +86,7 @@ curl -X PUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d 
           "id": {
             "type": "keyword"
           },
-          "name": {
+          "full_name": {
             "type": "text",
             "analyzer": "ru_en"
           }
@@ -99,7 +99,7 @@ curl -X PUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d 
           "id": {
             "type": "keyword"
           },
-          "name": {
+          "full_name": {
             "type": "text",
             "analyzer": "ru_en"
           }
@@ -112,7 +112,7 @@ curl -X PUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d 
           "id": {
             "type": "keyword"
           },
-          "name": {
+          "full_name": {
             "type": "text",
             "analyzer": "ru_en"
           }
