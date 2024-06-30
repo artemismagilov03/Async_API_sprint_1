@@ -8,5 +8,5 @@ RUN pip --no-cache-dir install -r requirements.txt
 COPY . .
 
 # need changing after to ready prodaction on `run`
-CMD ["fastapi", "dev", "movies_api/main.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["gunicorn", "movies_api.main:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
 EXPOSE 8000
