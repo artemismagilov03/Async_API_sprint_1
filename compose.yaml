@@ -36,11 +36,11 @@ services:
     image: "python:alpine"
     working_dir: "/code"
     volumes:
-      - "./etl/etl/:/code/"
+      - "./etl/:/code/"
     # cached dependency, run only ETL.
     command: sh -c "
       pip install -r requirements.txt \
-      && python etl_pipelines.py
+      && python -m etl.etl_pipelines
       "
     env_file:
       - ".env"
