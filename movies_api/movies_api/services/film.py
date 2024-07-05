@@ -181,15 +181,14 @@ class FilmService:
 
     async def _film_from_cache(self, uuid: UUID) -> Optional[Film]:
         key = f'{settings.MOVIES_INDEX}:{uuid}'
-        if data := await self.redis.get(key):
+        if not (data := await self.redis.get(key)):
             return None
         film = Film.model_validate_json(data)
         return film
 
     async def _films_from_cache(self, *args) -> Optional[Film]:
         key = f'{settings.MOVIES_INDEX}:' + ','.join(f'{arg}' for arg in args)
-        data = await self.redis.get(key)
-        if not data:
+        if not (data := await self.redis.get(key)):
             return None
         films = [Film(**f) for f in orjson.loads(data)]
         return films
