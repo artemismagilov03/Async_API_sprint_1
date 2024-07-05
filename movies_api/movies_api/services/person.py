@@ -153,8 +153,8 @@ class PersonService:
                 {
                     'bool': {
                         'must': [
-                            {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'writer'}}}},
-                            {'match': {'full_name': writer}},
+                            {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'actor'}}}},
+                            {'match': {'full_name': actor}},
                         ],
                     }
                 }
