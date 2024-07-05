@@ -121,7 +121,7 @@ class GenreService:
     async def _put_genres_to_cache(self, genres: list[Genre], *args):
         key = f'{settings.GENRES_INDEX}:' + ','.join(f'{arg}' for arg in args)
         value = orjson.dumps([g.model_dump() for g in genres])
-        await self.redis.set(key, value, settings.GENRES_INDEX)
+        await self.redis.set(key, value, settings.GENRE_CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache
