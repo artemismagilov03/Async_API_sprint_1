@@ -89,6 +89,7 @@ class PersonService:
         director: str,
     ) -> list[Person]:
         filters = []
+
         if actor:
             filters.append(
                 {
@@ -148,6 +149,7 @@ class PersonService:
         director: str,
     ) -> list[Person]:
         filters = {'match': {'full_name': query}} if query else []
+
         if actor:
             filters.append(
                 {
