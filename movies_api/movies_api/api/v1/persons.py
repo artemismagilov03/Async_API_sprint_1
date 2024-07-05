@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from movies_api.api.v1.enums import PersonSortOption
-from movies_api.api.v1.schemas import Person, FilmRoles
+from movies_api.api.v1.schemas import FilmRoles, Person
 from movies_api.services.person import PersonService, get_person_service
 
 router = APIRouter(prefix='/api/v1/persons', tags=['persons'])
@@ -82,7 +82,7 @@ async def person_details(
     if not (person := await person_service.get_by_id(uuid)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='person not found')
     return Person(
-            uuid=person.id,
-            full_name=person.full_name,
-            films=[FilmRoles(uuid=film.id, roles=film.roles) for film in person.films],
-        )
+        uuid=person.id,
+        full_name=person.full_name,
+        films=[FilmRoles(uuid=film.id, roles=film.roles) for film in person.films],
+    )
