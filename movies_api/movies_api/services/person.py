@@ -88,11 +88,7 @@ class PersonService:
         writer: str,
         director: str,
     ) -> list[Person]:
-        filters = [
-            {'nested': {'path': 'films', 'query': {'match': {'films.roles': r}}}}
-            for r in (actor, writer, director)
-            if r
-        ]
+        filters = [{'match': {'full_name': full_name}} for full_name in (actor, writer, director) if full_name]
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
