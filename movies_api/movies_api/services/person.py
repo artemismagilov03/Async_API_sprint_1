@@ -136,40 +136,28 @@ class PersonService:
         writer: str,
         director: str,
     ) -> list[Person]:
-        filters = {'match': {'full_name': query}} if query else []
+        filters = [{'match': {'full_name': query}}] if query else []
 
         if actor:
-            filters.append(
-                {
-                    'bool': {
-                        'must': [
-                            {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'actor'}}}},
-                            {'match': {'full_name': actor}},
-                        ],
-                    }
-                }
+            filters.extend(
+                (
+                    {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'actor'}}}},
+                    {'match': {'full_name': actor}},
+                )
             )
         if writer:
-            filters.append(
-                {
-                    'bool': {
-                        'must': [
-                            {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'writer'}}}},
-                            {'match': {'full_name': writer}},
-                        ],
-                    }
-                }
+            filters.extend(
+                (
+                    {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'writer'}}}},
+                    {'match': {'full_name': writer}},
+                )
             )
         if director:
-            filters.append(
-                {
-                    'bool': {
-                        'must': [
-                            {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'director'}}}},
-                            {'match': {'full_name': director}},
-                        ],
-                    }
-                }
+            filters.extend(
+                (
+                    {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'director'}}}},
+                    {'match': {'full_name': director}},
+                )
             )
 
             query = {'bool': {'must': filters}} if filters else {'match_all': {}}
