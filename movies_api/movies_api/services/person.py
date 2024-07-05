@@ -156,7 +156,7 @@ class PersonService:
 
     async def _put_persons_to_cache(self, persons: list[Person], *args):
         key = f'{settings.PERSONS_INDEX}:' + ','.join(f'{arg}' for arg in args)
-        value = orjson.dumps([p.dict() for p in persons])
+        value = orjson.dumps([p.model_dump() for p in persons])
         await self.redis.set(key, value, settings.PERSON_CACHE_EXPIRE_IN_SECONDS)
 
 
