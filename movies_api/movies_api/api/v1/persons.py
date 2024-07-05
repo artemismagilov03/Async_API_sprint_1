@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from movies_api.api.v1.enums import PersonSortOption
-from movies_api.api.v1.schemas import Person
+from movies_api.api.v1.schemas import Person, FilmRoles
 from movies_api.services.person import PersonService, get_person_service
 
 router = APIRouter(prefix='/api/v1/persons', tags=['persons'])
@@ -28,7 +28,14 @@ async def list_persons(
     """List of persons"""
     if not (persons := await person_service.get_by_list(sort, page_size, page_number, actor, writer, director)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='persons not found')
-    return [Person(uuid=person.id, full_name=person.full_name) for person in persons]
+    return [
+        Person(
+            uuid=person.id,
+            full_name=person.full_name,
+            films=[FilmRoles(uuid=film.id, roles=film.roles) for film in person.films],
+        )
+        for person in persons
+    ]
 
 
 @router.get(
@@ -51,7 +58,14 @@ async def search_persons(
     persons = await person_service.search_by_full_name(query, sort, page_size, page_number, actor, writer, director)
     if not persons:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='persons not found')
-    return [Person(uuid=person.id, full_name=person.full_name) for person in persons]
+    return [
+        Person(
+            uuid=person.id,
+            full_name=person.full_name,
+            films=[FilmRoles(uuid=film.id, roles=film.roles) for film in person.films],
+        )
+        for person in persons
+    ]
 
 
 @router.get(
@@ -67,4 +81,8 @@ async def person_details(
     """Single person by uuid"""
     if not (person := await person_service.get_by_id(uuid)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='person not found')
-    return Person(uuid=person.id, full_name=person.full_name)
+    return Person(
+            uuid=person.id,
+            full_name=person.full_name,
+            films=[FilmRoles(uuid=film.id, roles=film.roles) for film in person.films],
+        )
