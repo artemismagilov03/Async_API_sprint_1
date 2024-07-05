@@ -160,19 +160,19 @@ class PersonService:
                 )
             )
 
-            query = {'bool': {'must': filters}} if filters else {'match_all': {}}
-            order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
-            sort = [{row: {'order': order}}]
+        query = {'bool': {'must': filters}} if filters else {'match_all': {}}
+        order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
+        sort = [{row: {'order': order}}]
 
-            body = {
-                'query': query,
-                'from': page_number,
-                'size': page_size,
-                'sort': sort,
-            }
+        body = {
+            'query': query,
+            'from': page_number,
+            'size': page_size,
+            'sort': sort,
+        }
 
-            docs = await self.elastic.search(index=settings.PERSONS_INDEX, body=body)
-            return [Person(**doc['_source']) for doc in docs['hits']['hits']]
+        docs = await self.elastic.search(index=settings.PERSONS_INDEX, body=body)
+        return [Person(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _person_from_cache(self, uuid: UUID) -> Optional[Person]:
         key = f'{settings.PERSONS_INDEX}:{uuid}'
