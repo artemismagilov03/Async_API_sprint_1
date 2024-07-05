@@ -120,7 +120,7 @@ class GenreService:
 
     async def _put_genres_to_cache(self, genres: list[Genre], *args):
         key = f'{settings.GENRES_INDEX}:' + ','.join(f'{arg}' for arg in args)
-        value = orjson.dumps([g for g in genres])
+        value = orjson.dumps([g.dict() for g in genres])
         await self.redis.set(key, value, settings.GENRES_INDEX)
 
 

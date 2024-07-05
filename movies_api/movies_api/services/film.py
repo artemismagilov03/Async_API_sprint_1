@@ -200,7 +200,7 @@ class FilmService:
 
     async def _put_films_to_cache(self, films: list[Film], *args):
         key = f'{settings.MOVIES_INDEX}:' + ','.join(f'{arg}' for arg in args)
-        value = orjson.dumps([f for f in films])
+        value = orjson.dumps([f.dict() for f in films])
         await self.redis.set(key, value, settings.FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
