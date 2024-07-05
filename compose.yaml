@@ -30,7 +30,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - ".env"
+      - ".example_env"
 
   etl-app:
     image: "python:alpine"
@@ -43,4 +43,4 @@ services:
       && python -m etl.etl_pipelines
       "
     env_file:
-      - ".env"
+      - ".example_env"
