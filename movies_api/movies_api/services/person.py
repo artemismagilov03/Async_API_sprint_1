@@ -91,15 +91,36 @@ class PersonService:
         filters = []
         if actor:
             filters.append(
-                {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'actor', 'full_name': actor}}}}
+                {
+                    'bool': {
+                        'must': [
+                            {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'actor'}}}},
+                            {'match': {'full_name': actor}},
+                        ],
+                    }
+                }
             )
         if writer:
             filters.append(
-                {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'writer', 'full_name': writer}}}}
+                {
+                    'bool': {
+                        'must': [
+                            {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'writer'}}}},
+                            {'match': {'full_name': writer}},
+                        ],
+                    }
+                }
             )
         if director:
             filters.append(
-                {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'director', 'full_name': director}}}}
+                {
+                    'bool': {
+                        'must': [
+                            {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'director'}}}},
+                            {'match': {'full_name': director}},
+                        ],
+                    }
+                }
             )
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
@@ -129,30 +150,51 @@ class PersonService:
         filters = {'match': {'full_name': query}} if query else []
         if actor:
             filters.append(
-                {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'actor', 'full_name': actor}}}}
+                {
+                    'bool': {
+                        'must': [
+                            {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'writer'}}}},
+                            {'match': {'full_name': writer}},
+                        ],
+                    }
+                }
             )
         if writer:
             filters.append(
-                {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'writer', 'full_name': writer}}}}
+                {
+                    'bool': {
+                        'must': [
+                            {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'writer'}}}},
+                            {'match': {'full_name': writer}},
+                        ],
+                    }
+                }
             )
         if director:
             filters.append(
-                {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'director', 'full_name': director}}}}
+                {
+                    'bool': {
+                        'must': [
+                            {'nested': {'path': 'films', 'query': {'match': {'films.roles': 'director'}}}},
+                            {'match': {'full_name': director}},
+                        ],
+                    }
+                }
             )
 
-        query = {'bool': {'must': filters}} if filters else {'match_all': {}}
-        order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
-        sort = [{row: {'order': order}}]
+            query = {'bool': {'must': filters}} if filters else {'match_all': {}}
+            order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
+            sort = [{row: {'order': order}}]
 
-        body = {
-            'query': query,
-            'from': page_number,
-            'size': page_size,
-            'sort': sort,
-        }
+            body = {
+                'query': query,
+                'from': page_number,
+                'size': page_size,
+                'sort': sort,
+            }
 
-        docs = await self.elastic.search(index=settings.PERSONS_INDEX, body=body)
-        return [Person(**doc['_source']) for doc in docs['hits']['hits']]
+            docs = await self.elastic.search(index=settings.PERSONS_INDEX, body=body)
+            return [Person(**doc['_source']) for doc in docs['hits']['hits']]
 
     async def _person_from_cache(self, uuid: UUID) -> Optional[Person]:
         key = f'{settings.PERSONS_INDEX}:{uuid}'
