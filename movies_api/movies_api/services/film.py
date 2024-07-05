@@ -104,9 +104,9 @@ class FilmService:
         if actor:
             filters.append({'match': {'actors_names': actor}})
         if writer:
-            filters.append({'match': {'writers_name': writer}})
+            filters.append({'match': {'writers_names': writer}})
         if director:
-            filters.append({'match': {'directors_name': director}})
+            filters.append({'match': {'directors_names': director}})
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
@@ -138,11 +138,11 @@ class FilmService:
         if genre:
             filters.append({'match': {'genres': genre}})
         if actor:
-            filters.append({'match': {'actors_name': actor}})
+            filters.append({'match': {'actors_names': actor}})
         if writer:
-            filters.append({'match': {'writers_name': writer}})
+            filters.append({'match': {'writers_names': writer}})
         if director:
-            filters.append({'match': {'directors_name': director}})
+            filters.append({'match': {'directors_names': director}})
 
         query = {'bool': {'must': filters}} if filters else {'match_all': {}}
         order, row = ('desc', sort[1:]) if sort[0] == '-' else ('asc', sort)
