@@ -41,7 +41,7 @@ class PersonService:
                 persons := await self._get_persons_from_elastic(sort, page_size, page_number, actor, writer, director)
             ):
                 return None
-            await self._put_persons_to_cache(persons)
+            await self._put_persons_to_cache(persons, sort, page_size, page_number, actor, writer, director)
 
         return persons
 
@@ -68,7 +68,7 @@ class PersonService:
                 )
             ):
                 return None
-            await self._put_persons_to_cache(persons)
+            await self._put_persons_to_cache(persons, query, sort, page_size, page_number, actor, writer, director)
 
         return persons
 
