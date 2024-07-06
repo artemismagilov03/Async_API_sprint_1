@@ -55,7 +55,7 @@ class PersonService:
         writer: str,
         director: str,
     ):
-        if not (persons := await self._persons_from_cache(sort, page_size, page_number, actor, writer, director)):
+        if not (persons := await self._persons_from_cache(query, sort, page_size, page_number, actor, writer, director)):
             if not (
                 persons := await self._search_persons_from_elastic(
                     query,
