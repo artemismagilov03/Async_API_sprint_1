@@ -116,7 +116,8 @@ class GenreService:
 
     async def _put_genre_to_cache(self, genre: Genre):
         key = f'{settings.GENRES_INDEX}:{genre.id}'
-        await self.redis.set(key, genre.model_dump_json(), settings.GENRE_CACHE_EXPIRE_IN_SECONDS)
+        value = genre.model_dump_json()
+        await self.redis.set(key, value, settings.GENRE_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_genres_to_cache(self, genres: list[Genre], *args):
         key = f'{settings.GENRES_INDEX}:' + ','.join(f'{arg}' for arg in args)

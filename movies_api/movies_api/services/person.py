@@ -191,7 +191,8 @@ class PersonService:
 
     async def _put_person_to_cache(self, person: Person):
         key = f'{settings.PERSONS_INDEX}:{person.id}'
-        await self.redis.set(key, person.model_dump_json(), settings.PERSON_CACHE_EXPIRE_IN_SECONDS)
+        value = person.model_dump_json()
+        await self.redis.set(key, value, settings.PERSON_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_persons_to_cache(self, persons: list[Person], *args):
         key = f'{settings.PERSONS_INDEX}:' + ','.join(f'{arg}' for arg in args)

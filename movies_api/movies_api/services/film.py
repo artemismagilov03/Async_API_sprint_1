@@ -195,7 +195,8 @@ class FilmService:
 
     async def _put_film_to_cache(self, film: Film):
         key = f'{settings.MOVIES_INDEX}:{film.id}'
-        await self.redis.set(key, film.model_dump_json(), settings.FILM_CACHE_EXPIRE_IN_SECONDS)
+        value = film.model_dump_json()
+        await self.redis.set(key, value, settings.FILM_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_films_to_cache(self, films: list[Film], *args):
         key = f'{settings.MOVIES_INDEX}:' + ','.join(f'{arg}' for arg in args)
