@@ -1,8 +1,7 @@
 services:
 
-  postgres:
+  postgres-local:
     image: "postgres:alpine"
-    container_name: "postgres-local"
     environment:
       - "POSTGRES_PASSWORD=example"
     volumes:
@@ -10,9 +9,8 @@ services:
     ports:
       - "5432:5432"
 
-  elastic-search:
+  elasticsearch-local:
     image: "elasticsearch:8.14.1"
-    container_name: "elasticsearch-local"
     ports:
       - "9300:9300"
       - "9200:9200"
@@ -20,8 +18,7 @@ services:
       - "discovery.type=single-node"
       - "xpack.security.enabled=false"
 
-  redis:
+  redis-local:
     image: "redis:alpine"
-    container_name: "redis-local"
     ports:
       - "6379:6379" # Redis Server
