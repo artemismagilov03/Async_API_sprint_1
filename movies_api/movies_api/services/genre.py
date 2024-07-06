@@ -54,7 +54,7 @@ class GenreService:
             doc = await self.elastic.get(index=settings.GENRES_INDEX, id=f'{uuid}')
         except NotFoundError:
             return None
-        return Genre(**doc['_source'])
+        return Genre.model_validate(doc['_source'])
 
     async def _get_genres_from_elastic(
         self,
@@ -74,7 +74,7 @@ class GenreService:
         }
 
         docs = await self.elastic.search(index=settings.GENRES_INDEX, body=body)
-        return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
+        return [Genre.model_validate(doc['_source']) for doc in docs['hits']['hits']]
 
     async def _search_genres_from_elastic(
         self,
@@ -97,7 +97,7 @@ class GenreService:
         }
 
         docs = await self.elastic.search(index=settings.GENRES_INDEX, body=body)
-        return [Genre(**doc['_source']) for doc in docs['hits']['hits']]
+        return [Genre.model_validate(doc['_source']) for doc in docs['hits']['hits']]
 
     async def _genre_from_cache(self, uuid: UUID) -> Optional[Genre]:
         key = f'{settings.GENRES_INDEX}:{uuid}'
@@ -111,7 +111,7 @@ class GenreService:
         key = f'{settings.GENRES_INDEX}:' + ','.join(f'{arg}' for arg in args)
         if not (data := await self.redis.get(key)):
             return None
-        genres = [Genre(**g) for g in orjson.loads(data)]
+        genres = [Genre.model_validate(g) for g in orjson.loads(data)]
         return genres
 
     async def _put_genre_to_cache(self, genre: Genre):

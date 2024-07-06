@@ -85,7 +85,7 @@ class FilmService:
             doc = await self.elastic.get(index=settings.MOVIES_INDEX, id=f'{uuid}')
         except NotFoundError:
             return None
-        return Film(**doc['_source'])
+        return Film.model_validate(doc['_source'])
 
     async def _get_films_from_elastic(
         self,
@@ -120,7 +120,7 @@ class FilmService:
         }
 
         docs = await self.elastic.search(index=settings.MOVIES_INDEX, body=body)
-        return [Film(**doc['_source']) for doc in docs['hits']['hits']]
+        return [Film.model_validate(doc['_source']) for doc in docs['hits']['hits']]
 
     async def _search_films_from_elastic(
         self,
@@ -156,7 +156,7 @@ class FilmService:
         }
 
         docs = await self.elastic.search(index=settings.MOVIES_INDEX, body=body)
-        return [Film(**doc['_source']) for doc in docs['hits']['hits']]
+        return [Film.model_validate(doc['_source']) for doc in docs['hits']['hits']]
 
     async def _get_films_by_person_from_elastic(
         self, uuid: UUID, sort: FilmSortOption, page_size: int, page_number: int
@@ -177,7 +177,7 @@ class FilmService:
         }
 
         docs = await self.elastic.search(index=settings.MOVIES_INDEX, body=body)
-        return [Film(**doc['_source']) for doc in docs['hits']['hits']]
+        return [Film.model_validate(doc['_source']) for doc in docs['hits']['hits']]
 
     async def _film_from_cache(self, uuid: UUID) -> Optional[Film]:
         key = f'{settings.MOVIES_INDEX}:{uuid}'
@@ -190,7 +190,7 @@ class FilmService:
         key = f'{settings.MOVIES_INDEX}:' + ','.join(f'{arg}' for arg in args)
         if not (data := await self.redis.get(key)):
             return None
-        films = [Film(**f) for f in orjson.loads(data)]
+        films = [Film.model_validate(f) for f in orjson.loads(data)]
         return films
 
     async def _put_film_to_cache(self, film: Film):

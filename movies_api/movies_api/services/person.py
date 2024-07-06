@@ -77,7 +77,7 @@ class PersonService:
             doc = await self.elastic.get(index=settings.PERSONS_INDEX, id=f'{uuid}')
         except NotFoundError:
             return None
-        return Person(**doc['_source'])
+        return Person.model_validate(doc['_source'])
 
     async def _get_persons_from_elastic(
         self,
@@ -124,7 +124,7 @@ class PersonService:
         }
 
         docs = await self.elastic.search(index=settings.PERSONS_INDEX, body=body)
-        return [Person(**doc['_source']) for doc in docs['hits']['hits']]
+        return [Person.model_validate(doc['_source']) for doc in docs['hits']['hits']]
 
     async def _search_persons_from_elastic(
         self,
@@ -172,7 +172,7 @@ class PersonService:
         }
 
         docs = await self.elastic.search(index=settings.PERSONS_INDEX, body=body)
-        return [Person(**doc['_source']) for doc in docs['hits']['hits']]
+        return [Person.model_validate(doc['_source']) for doc in docs['hits']['hits']]
 
     async def _person_from_cache(self, uuid: UUID) -> Optional[Person]:
         key = f'{settings.PERSONS_INDEX}:{uuid}'
@@ -186,7 +186,7 @@ class PersonService:
         key = f'{settings.PERSONS_INDEX}:' + ','.join(f'{arg}' for arg in args)
         if not (data := await self.redis.get(key)):
             return None
-        persons = [Person(**g) for g in orjson.loads(data)]
+        persons = [Person.model_validate(g) for g in orjson.loads(data)]
         return persons
 
     async def _put_person_to_cache(self, person: Person):
