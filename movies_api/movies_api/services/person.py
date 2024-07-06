@@ -186,7 +186,7 @@ class PersonService:
         key = f'{settings.PERSONS_INDEX}:' + ','.join(f'{arg}' for arg in args)
         if not (data := await self.redis.get(key)):
             return None
-        persons = [Person.model_validate(g) for g in orjson.loads(data)]
+        persons = [Person.model_validate(p) for p in orjson.loads(data)]
         return persons
 
     async def _put_person_to_cache(self, person: Person):
