@@ -1,0 +1,27 @@
+services:
+
+  postgres:
+    image: "postgres:alpine"
+    container_name: "postgres"
+    environment:
+      - "POSTGRES_PASSWORD=example"
+    volumes:
+      - "./dump.sql:/docker-entrypoint-initdb.d/dump.sql"
+    ports:
+      - "5432:5432"
+
+  elastic-search:
+    image: "elasticsearch:8.14.1"
+    container_name: "elasticsearch"
+    ports:
+      - "9300:9300"
+      - "9200:9200"
+    environment:
+      - "discovery.type=single-node"
+      - "xpack.security.enabled=false"
+
+  redis:
+    image: "redis:alpine"
+    container_name: "redis"
+    ports:
+      - "6379:6379" # Redis Server
